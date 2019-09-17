@@ -1,0 +1,18 @@
+name: etcd
+version: 0.1.0
+
+authors:
+  - Caspian Baska <caspianbaska@gmail.com>
+
+dependencies:
+  tokenizer:
+    github: spider-gazelle/tokenizer
+
+development_dependencies:
+  # Linter
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 0.10.1
+
+crystal: 0.30.1
+license: MIT
