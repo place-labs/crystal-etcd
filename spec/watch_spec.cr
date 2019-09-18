@@ -7,9 +7,9 @@ module Etcd
       ttl = 5_i64
 
       lease = client.lease.grant ttl
-      events = [] of Etcd::Model::WatchEvent
-      watcher = client.watch.watch_prefix(TEST_PREFIX) do |event|
-        events + event
+      received = [] of Etcd::Model::WatchEvent
+      watcher = client.watch.watch_prefix(TEST_PREFIX) do |events|
+        received + events
       end
 
       spawn { watcher.start }
@@ -19,8 +19,12 @@ module Etcd
 
       client.kv.put(key0, value0, lease: lease[:id])
       client.kv.put(key1, value1, lease: lease[:id])
-      puts events
 
+      sleep 2
+
+      puts received
+      pp! client.kv.range(TEST_PREFIX)
+      received.size.should eq 2
       watcher.stop
     end
   end

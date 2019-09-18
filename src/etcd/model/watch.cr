@@ -4,7 +4,7 @@ require "./kv"
 module Etcd::Model
   class WatchResponse < Base
     getter result : WatchResult
-    getter error : WatchError
+    getter error : WatchError?
     getter created : Bool = false
   end
 

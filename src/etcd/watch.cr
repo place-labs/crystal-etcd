@@ -6,9 +6,9 @@ require "./model/watch"
 class Etcd::Watch
   include Utils
 
-  private getter api : Etcd::Api
+  private getter client : Etcd::Client
 
-  def initialize(@api = Etcd::Api.new)
+  def initialize(@client = Etcd::Client.new)
   end
 
   # Watches keys by prefix, passing events to a supplied block.
@@ -45,21 +45,18 @@ class Etcd::Watch
     progress_notify : Bool? = nil,
     &block : Array(Model::WatchEvent) -> Void
   ) : Watcher
-    options = {
-      :key             => key,
-      :range_end       => range_end,
-      :filters         => filters,
-      :start_revision  => start_revision,
-      :progress_notify => progress_notify,
-    }.compact
-
     # Base64 key and range_end
-    {:key, :range_end}.each do |k|
-      option = options[k]?
-      options[k] = Base64.strict_encode(option) if option && option.is_a?(String)
-    end
-
-    Watcher.new(key: key, api: api, options: options, &block)
+    key = Base64.strict_encode(key)
+    range_end = Base64.strict_encode(range_end) unless range_end.nil?
+    Watcher.new(
+      api: client.spawn_api,
+      key: key,
+      range_end: range_end,
+      filters: filters,
+      start_revision: start_revision,
+      progress_notify: progress_notify,
+      &block
+    )
   end
 
   # Wrapper for a watch session with etcd.
@@ -75,9 +72,12 @@ class Etcd::Watch
   # ```
   class Watcher
     getter key : String
-    getter options : Hash(Symbol, String | Int64 | Bool | Array(WatchFilter))?
     private getter api : Etcd::Api
     private getter block : Proc(Array(Model::WatchEvent), Void)
+    private getter range_end : String?
+    private getter filters : Array(WatchFilter)?
+    private getter start_revision : Int64?
+    private getter progress_notify : Bool?
 
     # Types for watch event filters
     enum WatchFilter
@@ -89,8 +89,11 @@ class Etcd::Watch
 
     def initialize(
       @key,
-      @options = nil,
       @api : Etcd::Api = Etcd::Api.new,
+      @range_end = nil,
+      @filters = nil,
+      @start_revision = nil,
+      @progress_notify = nil,
       &@block : Array(Model::WatchEvent) -> Void
     )
     end
@@ -98,17 +101,26 @@ class Etcd::Watch
     # Start the watcher
     def start
       raise Etcd::WatchError.new "Already watching #{@key}" if watching
-
       # Check out from the thread pool here
-      post_body = {create_request: @options}
-      api.post("/watch", body: post_body) do |stream|
+      post_body = {
+        create_request: {
+          :key             => key,
+          :range_end       => range_end,
+          :filters         => filters,
+          :start_revision  => start_revision,
+          :progress_notify => progress_notify,
+        }.compact,
+      }
+      api.post("/watch", post_body) do |stream|
+        @watching = true
+        pp! stream.body_io
         consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
           begin
             response = Model::WatchResponse.from_json(chunk)
             raise IO::EOFError.new if response.error
 
             # Pick off events
-            events = response.try(&.result.try(&.events)) || [] of Model::WatchEvent
+            events = response.result.events
 
             # Ignore "created" message
             @block.call events unless response.created
@@ -116,6 +128,7 @@ class Etcd::Watch
             raise Etcd::WatchError.new e.message
           end
         end
+        @watching = false
       end
     end
 
@@ -123,6 +136,7 @@ class Etcd::Watch
     def stop
       # TODO: When adding pooling, return connection to the conn pool
       api.connection.close
+      @watching = false
     end
 
     # Partitions IO into JSON chunks (only objects!)

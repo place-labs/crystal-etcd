@@ -64,7 +64,7 @@ class Etcd::Api
     # The response status will be automatically checked and a Etcd::ApiError raised if
     # unsuccessful.
     # ```
-    protected def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType? = nil)
+    def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType? = nil)
       path = "/#{api_version}#{path}"
 
       {% if method == "post" %}
@@ -78,22 +78,6 @@ class Etcd::Api
       response
     end
 
-    # Executes a {{method.id.upcase}} request on the etcd client connection with a JSON body
-    # formed from the passed `NamedTuple`... or a `Hash`.
-    def {{method.id}}(path, body = nil)
-      headers = HTTP::Headers.new
-      headers["Content-Type"] = "application/json"
-      body = to_stringly(body) unless body.nil?
-      {{method.id}} path, headers, body.to_json
-    end
-
-    # :ditto:
-    def {{method.id}}(path, headers : HTTP::Headers, body = nil)
-      headers["Content-Type"] = "application/json"
-      body = to_stringly(body) unless body.nil?
-      {{method.id}} path, headers, body.to_json
-    end
-
     # Executes a {{method.id.upcase}} request and yields a `HTTP::Client::Response`.
     #
     # When working with endpoint that provide stream responses these may be accessed as available
@@ -101,20 +85,39 @@ class Etcd::Api
     #
     # The response status will be automatically checked and a etcd::ApiError raised if
     # unsuccessful.
-    protected def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType = nil)
-      connection.{{method.id}} path, headers, body do |response|
+    def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType = nil)
+      path = "/#{api_version}#{path}"
+      connection.{{method.id}}(path, headers, body) do |response|
         raise Etcd::ApiError.from_response(response) unless response.success?
         yield response
       end
     end
 
     # Executes a {{method.id.upcase}} request on the etcd client connection with a JSON body
-    # formed from the passed `NamedTuple` and yields streamed response entries to the block.
-    def {{method.id}}(path, body : NamedTuple | Hash)
-      headers = HTTP::Headers.new
+    # formed from the passed `NamedTuple`... or a `Hash`.
+    def {{method.id}}(path, body = nil)
+      headers = HTTP::Headers{
+        "Content-Type" => "application/json",
+      }
+      body = to_stringly(body) unless body.nil?
+      {{method.id}}(path, headers, body.to_json)
+    end
+
+    # :ditto:
+    def {{method.id}}(path, headers : HTTP::Headers, body = nil)
       headers["Content-Type"] = "application/json"
       body = to_stringly(body) unless body.nil?
-      {{method.id}} path, headers, to_stringly(body).to_json do |response|
+      {{method.id}}(path, headers, body.to_json)
+    end
+
+    # Executes a {{method.id.upcase}} request on the etcd client connection with a JSON body
+    # formed from the passed `NamedTuple` and yields streamed response entries to the block.
+    def {{method.id}}(path, body : NamedTuple | Hash)
+      headers = HTTP::Headers{
+        "Content-Type" => "application/json",
+      }
+      body = to_stringly(body) unless body.nil?
+      {{method.id}}(path, headers, body.to_json) do |response|
         yield response
       end
     end
@@ -123,7 +126,7 @@ class Etcd::Api
     def {{method.id}}(path, headers : HTTP::Headers, body : NamedTuple | Hash)
       headers["Content-Type"] = "application/json"
       body = to_stringly(body) unless body.nil?
-      {{method.id}} path, headers, body.to_json do |response|
+      {{method.id}}(path, headers, body.to_json) do |response|
         yield response
       end
     end
