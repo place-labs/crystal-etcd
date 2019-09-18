@@ -3,9 +3,9 @@ require "./utils"
 class Etcd::Kv
   include Utils
 
-  private getter api : Etcd::Api
+  private getter client : Etcd::Client
 
-  def initialize(@api = Etcd::Api.new)
+  def initialize(@client = Etcd::Client.new)
   end
 
   # Sets a key and value in etcd.
@@ -17,34 +17,39 @@ class Etcd::Kv
   #                 The previous key-value pair will be returned in the put response.                                                 Bool
   #   ignore_value  If ignore_value is set, etcd updates the key using its current value. Returns an error if the key does not exist  Bool
   #   ignore_lease  If ignore_lease is set, etcd updates the key using its current lease. Returns an error if the key does not exist  Bool
-  def put(key, value, **opts)
-    opts = {
-      key:   Base64.strict_encode(key),
-      value: Base64.strict_encode(value),
-      lease: 0_i64,
-    }.merge(opts)
+  def put(
+    key : String,
+    value : String,
+    lease : Int64 = 0_i64,
+    prev_kv : Bool? = nil,
+    ignore_value : Bool? = nil,
+    ignore_lease : Bool? = nil
+  )
+    options = {
+      :key          => Base64.strict_encode(key),
+      :value        => Base64.strict_encode(value),
+      :lease        => lease,
+      :prev_kv      => prev_kv,
+      :ignore_value => ignore_value,
+      :ignore_lease => ignore_lease,
+    }.compact
+    response = client.api.post("/kv/put", options)
 
-    parameters = {} of Symbol => String | Int64 | Bool
-    {:key, :value, :lease, :prev_kv, :ignore_value, :ignore_lease}.each do |param|
-      parameters[param] = opts[param] if opts.has_key?(param)
-    end
-    response = api.post("/kv/put", parameters)
-
-    if opts["prev_kv"]?
-      JSON.parse(response.body)["prev_kv"]
-    else
-      response.success?
-    end
+    Model::PutResponse.from_json(response.body)
   end
 
   # Deletes key or range of keys
-  def delete(key, range_end = "")
+  def delete(key, range_end : String? = nil)
+    encoded_key = Base64.strict_encode(key)
+    encoded_range_end = range_end.try &->Base64.strict_encode(String)
+
     post_body = {
-      :key       => Base64.strict_encode(key),
-      :range_end => Base64.strict_encode(range_end),
-    }
-    response = api.post("/kv/deleterange", post_body)
-    JSON.parse(response.body)["deleted"]?.try(&.to_s.to_i64) || 0
+      :key       => encoded_key,
+      :range_end => encoded_range_end,
+    }.compact
+    response = client.api.post("/kv/deleterange", post_body)
+
+    Model::DeleteResponse.from_json(response.body)
   end
 
   # Deletes an entire keyspace prefix
@@ -61,9 +66,9 @@ class Etcd::Kv
       :key       => encoded_key,
       :range_end => encoded_range_end,
     }.compact
+    response = client.api.post("/kv/range", parameters)
 
-    response = api.post("/kv/range", parameters)
-    Model::RangeResponse.from_json(response.body).kvs || [] of Model::Kv
+    Model::RangeResponse.from_json(response.body)
   end
 
   # Query keys beneath a prefix
