@@ -1,6 +1,6 @@
 # crystal-etcd
 
-[etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over the gRPC-HTTP ETCD gateway.
+[etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's gRPC-HTTP gateway.
 
 ## Installation
 
@@ -24,58 +24,55 @@ require "etcd"
 
 ### Auth
 
-- [ ] POST auth/authenticate
-- [ ] POST auth/disable
-- [ ] POST auth/enable
-- [ ] POST auth/role/add
-- [ ] POST auth/role/delete
-- [ ] POST auth/role/get
-- [ ] POST auth/role/grant
-- [ ] POST auth/role/list
-- [ ] POST auth/role/revoke
-- [ ] POST auth/user/add
-- [ ] POST auth/user/changepw
-- [ ] POST auth/user/delete
-- [ ] POST auth/user/get
-- [ ] POST auth/user/grant
-- [ ] POST auth/user/list
-- [ ] POST auth/user/revoke
+- [ ] authenticate
+- [ ] disable
+- [ ] enable
+- [ ] role/add
+- [ ] role/delete
+- [ ] role/get
+- [ ] role/grant
+- [ ] role/list
+- [ ] role/revoke
+- [ ] user/add
+- [ ] user/changepw
+- [ ] user/delete
+- [ ] user/get
+- [ ] user/grant
+- [ ] user/list
+- [ ] user/revoke
 
 ### Cluster
 
-- [ ] POST cluster/member/add
-- [ ] POST cluster/member/list
-- [ ] POST cluster/member/promote
-- [ ] POST cluster/member/remove
-- [ ] POST cluster/member/update
+- [ ] member/add
+- [ ] member/list
+- [ ] member/promote
+- [ ] member/remove
+- [ ] member/update
 
-### KV
+### Kv
 
-- [ ] POST /kv/compaction
-- [ ] POST /kv/deleterange
-- [ ] POST /kv/lease/leases
-- [ ] POST /kv/lease/revoke
-- [ ] POST /kv/lease/timetolive
-- [~] POST /kv/put
-- [~] POST /kv/range
-- [ ] POST /kv/txn
+- [x] put
+- [x] range
+- [x] deleterange
+- [ ] compaction
+- [ ] txn
 
 ### Lease
 
-- [~] POST /lease/grant
-- [~] POST /lease/keepalive
-- [~] POST /lease/leases
-- [~] POST /lease/revoke
-- [~] POST /lease/timetolive
+- [x] grant
+- [x] keepalive
+- [x] leases
+- [x] revoke
+- [x] timetolive
 
 ### Maintenance
 
-- [ ] POST /maintenance/alarm
-- [ ] POST /maintenance/defragment
-- [ ] POST /maintenance/hash
-- [ ] POST /maintenance/snapshot
-- [~] POST /maintenance/status
-- [ ] POST /maintenance/transfer-leadership
+- [ ] alarm
+- [ ] defragment
+- [ ] hash
+- [ ] snapshot
+- [x] status
+- [ ] transfer-leadership
 
 ### Watch
 
@@ -86,6 +83,10 @@ require "etcd"
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
+
+## See Also
+
+- [crystal-docker](https://github.com/aca-labs/crystal-docker)
 
 ## Contributors
 

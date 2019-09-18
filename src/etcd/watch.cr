@@ -1,8 +1,17 @@
 require "tokenizer"
 
-module Etcd::Watch
+require "./utils"
+require "./model/watch"
+
+class Etcd::Watch
+  include Utils
+  private getter api : Etcd::Api
+
+  def initialize(@api = Etcd::Api.new)
+  end
+
   # Watches keys by prefix, passing events to a supplied block.
-  # Exposes a synchronous interface to the watchfeed via `Etcd::WatchFeed`
+  # Exposes a synchronous interface to the watch session via `Etcd::Watcher`
   #
   # opts
   #  filters         filters filter the events at server side before it sends back to the watcher.                                           [WatchFilter]
@@ -10,14 +19,14 @@ module Etcd::Watch
   #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
   #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
   #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
-  #  prev_kv         If prev_kv is set, created watcher gets the previous KV before the event happens.                                       Bool
+  #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
   def watch_prefix(prefix, **opts, &block : Array(Model::WatchEvent) -> Void)
     opts = opts.merge({range_end: prefix_range_end prefix})
     watch(prefix, **opts, &block)
   end
 
-  # Watch a key in ETCD, returns a watchfeed
-  # Exposes a synchronous interface to the watchfeed via `Etcd::WatchFeed`
+  # Watch a key in ETCD, returns a `Etcd::Watcher`
+  # Exposes a synchronous interface to the watch session via `Etcd::Watcher`
   #
   # opts
   #  range_end       range_end is the end of the range [key, range_end) to watch.
@@ -26,13 +35,13 @@ module Etcd::Watch
   #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
   #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
   #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
-  #  prev_kv         If prev_kv is set, created watcher gets the previous KV before the event happens.                                       Bool
-  def watch(key, **opts, &block : Array(Model::WatchEvent) -> Void) : WatchFeed
+  #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
+  def watch(key, **opts, &block : Array(Model::WatchEvent) -> Void) : Watcher
     opts = {
       key: key,
     }.merge(opts)
 
-    options = {} of Symbol => String | Int64 | Bool | Array(WatchFeed::WatchFilter)
+    options = {} of Symbol => String | Int64 | Bool | Array(Watcher::WatchFilter)
     {:key, :range_end, :prev_kv, :progress_notify, :start_revision, :filters}.each do |k|
       options[k] = opts[k] if opts.has_key?(k)
     end
@@ -43,25 +52,24 @@ module Etcd::Watch
       options[k] = Base64.strict_encode(option) if option && option.is_a?(String)
     end
 
-    WatchFeed.new(key: key, client: self, options: options, &block)
+    Watcher.new(key: key, api: api, options: options, &block)
   end
 
-  # Wrapper for a watch session with ETCD.
+  # Wrapper for a watch session with etcd.
   #
   # ```
   # client = Etcd::Client.new
-  # watchfeed = client.watch(key: "hello") do |e|
+  # watcher = client.watch(key: "hello") do |e|
+  #   # This block will be called upon each etcd event
   #   puts e
   # end
   #
-  # spawn do
-  #   watchfeed.start
-  # end
+  # spawn { watcher.start }
   # ```
-  class WatchFeed
+  class Watcher
     getter key : String
     getter options : Hash(Symbol, String | Int64 | Bool | Array(WatchFilter))?
-    private getter client : Etcd::Client
+    private getter api : Etcd::Api
     private getter block : Proc(Array(Model::WatchEvent), Void)
 
     # Types for watch event filters
@@ -75,17 +83,18 @@ module Etcd::Watch
     def initialize(
       @key,
       @options = nil,
-      @client : Etcd::Client = Etcd::Client.new,
+      @api : Etcd::Api = Etcd::Api.new,
       &@block : Array(Model::WatchEvent) -> Void
     )
     end
 
-    # Start the watchfeed
+    # Start the watcher
     def start
-      raise "Already watching #{@key}" if watching
+      raise Etcd::WatchError.new "Already watching #{@key}" if watching
+
       # Check out from the thread pool here
       post_body = {create_request: @options}
-      @client.post("/watch", body: post_body) do |stream|
+      api.post("/watch", body: post_body) do |stream|
         consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
           begin
             response = Model::WatchResponse.from_json(chunk)
@@ -103,10 +112,10 @@ module Etcd::Watch
       end
     end
 
-    # Close the client and stop the watchfeed
+    # Close the client and stop the watcher
     def stop
       # TODO: When adding pooling, return connection to the conn pool
-      client.connection.try &.close
+      api.connection.close
     end
 
     # Partitions IO into JSON chunks (only objects!)
