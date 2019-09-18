@@ -5,6 +5,7 @@ require "./model/watch"
 
 class Etcd::Watch
   include Utils
+
   private getter api : Etcd::Api
 
   def initialize(@api = Etcd::Api.new)
@@ -21,7 +22,7 @@ class Etcd::Watch
   #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
   #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
   def watch_prefix(prefix, **opts, &block : Array(Model::WatchEvent) -> Void)
-    opts = opts.merge({range_end: prefix_range_end prefix})
+    opts = opts.merge({range_end: prefix_range_end(prefix)})
     watch(prefix, **opts, &block)
   end
 
@@ -30,21 +31,27 @@ class Etcd::Watch
   #
   # opts
   #  range_end       range_end is the end of the range [key, range_end) to watch.
-  #  filters         filters filter the events at server side before it sends back to the watcher.                                           [WatchFilter]
+  #  filters         filter the events at server side before it sends back to the watcher.                                           [WatchFilter]
   #  start_revision  start_revision is an optional revision to watch from (inclusive). No start_revision is "now".                           Int64
   #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
   #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
   #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
   #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
-  def watch(key, **opts, &block : Array(Model::WatchEvent) -> Void) : Watcher
-    opts = {
-      key: key,
-    }.merge(opts)
-
-    options = {} of Symbol => String | Int64 | Bool | Array(Watcher::WatchFilter)
-    {:key, :range_end, :prev_kv, :progress_notify, :start_revision, :filters}.each do |k|
-      options[k] = opts[k] if opts.has_key?(k)
-    end
+  def watch(
+    key,
+    range_end : String? = nil,
+    filters : Array(WatchFilter)? = nil,
+    start_revision : Int64? = nil,
+    progress_notify : Bool? = nil,
+    &block : Array(Model::WatchEvent) -> Void
+  ) : Watcher
+    options = {
+      :key             => key,
+      :range_end       => range_end,
+      :filters         => filters,
+      :start_revision  => start_revision,
+      :progress_notify => progress_notify,
+    }.compact
 
     # Base64 key and range_end
     {:key, :range_end}.each do |k|
