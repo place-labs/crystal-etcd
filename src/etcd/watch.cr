@@ -22,8 +22,9 @@ class Etcd::Watch
   #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
   #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
   def watch_prefix(prefix, **opts, &block : Array(Model::WatchEvent) -> Void)
-    opts = opts.merge({range_end: prefix_range_end(prefix)})
-    watch(prefix, **opts, &block)
+    encoded_prefix = Base64.strict_encode(prefix)
+    opts = opts.merge({range_end: prefix_range_end(encoded_prefix), base64_keys: false})
+    watch(encoded_prefix, **opts, &block)
   end
 
   # Watch a key in ETCD, returns a `Etcd::Watcher`
@@ -43,11 +44,14 @@ class Etcd::Watch
     filters : Array(WatchFilter)? = nil,
     start_revision : Int64? = nil,
     progress_notify : Bool? = nil,
+    base64_keys : Bool = true,
     &block : Array(Model::WatchEvent) -> Void
   ) : Watcher
-    # Base64 key and range_end
-    key = Base64.strict_encode(key)
-    range_end = Base64.strict_encode(range_end) unless range_end.nil?
+    if base64_keys
+      key = Base64.strict_encode(key)
+      range_end = range_end.try &->Base64.strict_encode(String)
+    end
+
     Watcher.new(
       api: client.spawn_api,
       key: key,
@@ -118,11 +122,8 @@ class Etcd::Watch
             response = Model::WatchResponse.from_json(chunk)
             raise IO::EOFError.new if response.error
 
-            # Pick off events
-            events = response.result.events
-
             # Ignore "created" message
-            @block.call events unless response.created
+            @block.call response.result.events unless response.created
           rescue e
             raise Etcd::WatchError.new e.message
           end
