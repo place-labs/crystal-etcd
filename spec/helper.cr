@@ -2,7 +2,7 @@ require "spec"
 require "../src/etcd"
 require "../src/etcd/*"
 
-TEST_PREFIX = "TEST"
+TEST_PREFIX = "test"
 Spec.before_each do
   begin
     Etcd.from_env.kv.delete_prefix TEST_PREFIX

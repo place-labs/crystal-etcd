@@ -19,7 +19,7 @@ class Etcd::Kv
   #   ignore_lease  If ignore_lease is set, etcd updates the key using its current lease. Returns an error if the key does not exist  Bool
   def put(
     key : String,
-    value : String,
+    value,
     lease : Int64 = 0_i64,
     prev_kv : Bool? = nil,
     ignore_value : Bool? = nil,
@@ -27,7 +27,7 @@ class Etcd::Kv
   )
     options = {
       :key          => Base64.strict_encode(key),
-      :value        => Base64.strict_encode(value),
+      :value        => Base64.strict_encode(value.to_s),
       :lease        => lease,
       :prev_kv      => prev_kv,
       :ignore_value => ignore_value,
@@ -39,13 +39,16 @@ class Etcd::Kv
   end
 
   # Deletes key or range of keys
-  def delete(key, range_end : String? = nil)
-    encoded_key = Base64.strict_encode(key)
-    encoded_range_end = range_end.try &->Base64.strict_encode(String)
+  def delete(key, range_end : String? = nil, base64_keys : Bool = true)
+    # Otherwise bypass encoding keys
+    if base64_keys
+      key = Base64.strict_encode(key)
+      range_end = range_end.try &->Base64.strict_encode(String)
+    end
 
     post_body = {
-      :key       => encoded_key,
-      :range_end => encoded_range_end,
+      :key       => key,
+      :range_end => range_end,
     }.compact
     response = client.api.post("/kv/deleterange", post_body)
 
@@ -54,25 +57,39 @@ class Etcd::Kv
 
   # Deletes an entire keyspace prefix
   def delete_prefix(prefix)
-    delete(prefix, prefix_range_end prefix)
+    encoded_prefix = Base64.strict_encode(prefix)
+    range_end = prefix_range_end encoded_prefix
+    delete(encoded_prefix, range_end, base64_keys: false)
   end
 
   # Queries a range of keys
-  def range(key, range_end : String? = nil)
-    encoded_key = Base64.strict_encode(key)
-    encoded_range_end = range_end.try &->Base64.strict_encode(String)
+  def range(key, range_end : String? = nil, base64_keys : Bool = true)
+    # Otherwise bypass encoding keys
+    if base64_keys
+      key = Base64.strict_encode(key)
+      range_end = range_end.try &->Base64.strict_encode(String)
+    end
 
-    parameters = {
-      :key       => encoded_key,
-      :range_end => encoded_range_end,
+    post_body = {
+      :key       => key,
+      :range_end => range_end,
     }.compact
-    response = client.api.post("/kv/range", parameters)
+    response = client.api.post("/kv/range", post_body)
 
     Model::RangeResponse.from_json(response.body)
   end
 
   # Query keys beneath a prefix
   def range_prefix(prefix)
-    range(prefix, prefix_range_end prefix)
+    encoded_prefix = Base64.strict_encode(prefix)
+    range_end = prefix_range_end encoded_prefix
+    range(encoded_prefix, range_end, base64_keys: false)
+  end
+
+  # Query all keys >= key
+  def range_greater_than_or_equal(key)
+    encoded_key = Base64.strict_encode(key)
+    range_end = "\0"
+    range(encoded_key, range_end, base64_keys: false)
   end
 end

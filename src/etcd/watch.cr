@@ -113,7 +113,6 @@ class Etcd::Watch
       }
       api.post("/watch", post_body) do |stream|
         @watching = true
-        pp! stream.body_io
         consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
           begin
             response = Model::WatchResponse.from_json(chunk)
