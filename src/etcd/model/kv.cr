@@ -17,7 +17,7 @@ module Etcd::Model
   end
 
   class RangeResponse < Base
-    getter header : Header
+    getter header : Header?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
     getter count : Int32?
     getter kvs : Array(Kv)?
@@ -31,7 +31,7 @@ module Etcd::Model
   class DeleteResponse < Base
     getter header : Header
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
-    getter deleted : Int32
+    getter deleted : Int32?
     getter prev_kvs : Array(Kv)?
   end
 end
