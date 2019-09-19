@@ -1,11 +1,23 @@
 language: crystal
+
+services:
+  - docker
+
+before_install:
+  # Install ETCD
+  - docker run -p "2379:2379" -p "2380:2380" -e ALLOW_NONE_AUTHENTICATION=yes -d bitnami/etcd:3.3.13
+  - sleep 5
+  - export TRAVIS_TEST=true
+
 install:
   - shards install
+
 script:
   - crystal tool format --check
   - crystal bin/ameba.cr
   - crystal spec
   - crystal docs
+
 deploy:
   provider: pages
   skip_cleanup: true
