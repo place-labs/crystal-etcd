@@ -6,23 +6,27 @@ module Etcd
 
   VERSION = `shards version`
 
-  def from_env
-    client(ENV["ETCD_HOST"]? || "localhost", ENV["ETCD_PORT"]?.try &.to_i)
+  def from_env(api_version : String? = nil)
+    client(
+      host: ENV["ETCD_HOST"]? || "localhost",
+      port: ENV["ETCD_PORT"]?.try &.to_i,
+      api_version: api_version,
+    )
   end
 
-  def client(url : URI)
-    Etcd::Client.new(url)
+  def client(url : URI, api_version : String? = nil)
+    Etcd::Client.new(url, api_version)
   end
 
-  def client(host : String, port : Int32? = nil)
-    Etcd::Client.new(host, port)
+  def client(host : String, port : Int32? = nil, api_version : String? = nil)
+    Etcd::Client.new(host, port, api_version)
   end
 
-  def api(url : URI)
-    Etcd::Api.new(url)
+  def api(url : URI, api_version : String? = nil)
+    Etcd::Api.new(url, api_version)
   end
 
-  def api(host : String, port : Int32? = nil)
-    Etcd::Api.new(host, port)
+  def api(host : String, port : Int32? = nil, api_version : String? = nil)
+    Etcd::Api.new(host, port, api_version)
   end
 end
