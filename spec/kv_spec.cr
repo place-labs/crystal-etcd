@@ -39,5 +39,15 @@ module Etcd
       key_present = values.any? { |r| r.key == key1 && r.value == value1 }
       key_present.should be_true
     end
+
+    it "gets a key" do
+      client = Etcd.from_env
+
+      key, value = "#{TEST_PREFIX}/hello", "world"
+      client.kv.put(key, value)
+      response = client.kv.get(key)
+      response.should be_a String
+      response.should eq value
+    end
   end
 end

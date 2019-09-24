@@ -92,4 +92,12 @@ class Etcd::Kv
     range_end = "\0"
     range(encoded_key, range_end, base64_keys: false)
   end
+
+  # Non-Standard Requests
+  ##############################################################################
+
+  def get(key) : String?
+    result = range(key)
+    result.try(&.kvs).try(&.first?).try(&.value)
+  end
 end
