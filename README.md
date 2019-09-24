@@ -1,6 +1,11 @@
 # crystal-etcd
 
-[etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's gRPC-HTTP gateway.
+[![Build Status](https://travis-ci.org/aca-labs/crystal-etcd.svg?branch=master)](https://travis-ci.org/aca-labs/crystal-etcd)
+[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://aca-labs.github.io/crystal-etcd/)
+
+[etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's [gRPC-HTTP gateway](https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md).
+
+This client was developed against etcd v3.3, to use a higher version, set `api_version` arg to an appropriate version prefix when instantiating the client.
 
 ## Installation
 
@@ -18,9 +23,20 @@
 
 ```crystal
 require "etcd"
+
+# Initialising a client from ETCD_HOST and ETCD_PORT
+client = Etcd.from_env
+
+# Add a key/value to etcd
+client.kv.put("/service/hello", "world")
+# Grab a key/value from etcd
+client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/service/hello" @value="world" @create_revision=nil  @mod_revision=nil @version=nil @lease=nil>
 ```
 
 ## TODO
+
+- Auth.
+- Multi-node.
 
 ### Auth
 
@@ -75,6 +91,8 @@ require "etcd"
 - [ ] transfer-leadership
 
 ### Watch
+
+- [x] watch
 
 ## Contributing
 
