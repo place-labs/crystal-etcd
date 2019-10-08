@@ -46,12 +46,12 @@ class Etcd::Api
   protected def to_stringly(value)
     case value
     when Array, Tuple
-      value.map { |v| to_stringly v }
+      value.map { |v| to_stringly(v) }
     when Hash
-      value.transform_values { |v| to_stringly v }
+      value.transform_values { |v| to_stringly(v) }
     when NamedTuple
-      to_stringly value.to_h
-    when Bool
+      to_stringly(value.to_h)
+    when String, Bool
       value
     else
       value.to_s

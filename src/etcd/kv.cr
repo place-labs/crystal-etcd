@@ -96,6 +96,30 @@ class Etcd::Kv
   # Non-Standard Requests
   ##############################################################################
 
+  def compare_and_swap(key, value, previous_value)
+    key, value, previous_value = {key, value, previous_value}.map &->Base64.strict_encode(String)
+    post_body = {
+      :compare => [{
+        :key    => key,
+        :value  => previous_value,
+        :target => "VALUE",
+        :result => "EQUAL",
+      }],
+      :success => [{
+        :request_put => {
+          :key   => key,
+          :value => value,
+        },
+      }],
+      :failure => [] of Nil,
+    }
+
+    puts post_body.to_json
+    response = client.api.post("/kv/txn", post_body.to_json)
+
+    response
+  end
+
   def get(key) : String?
     result = range(key)
     result.try(&.kvs).try(&.first?).try(&.value)

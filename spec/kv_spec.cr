@@ -2,6 +2,28 @@ require "./helper"
 
 module Etcd
   describe Kv do
+    describe "compare_and_swap", focus: true do
+      it "puts if compare succeeds" do
+        client = Etcd.from_env
+        key = "#{TEST_PREFIX}/hello"
+        value0 = "world"
+        value1 = "friends"
+        client.kv.put(key, value0)
+        response = client.kv.compare_and_swap(key, value: value1, previous_value: value0)
+        pp! response
+      end
+
+      it "fails if compare fails" do
+        client = Etcd.from_env
+        key = "#{TEST_PREFIX}/hello"
+        value0 = "world"
+        value1 = "friends"
+        client.kv.put(key, value0)
+        response = client.kv.compare_and_swap(key, value: value1, previous_value: "ginger nut")
+        pp! response
+      end
+    end
+
     it "sets a value" do
       client = Etcd.from_env
       response = client.kv.put("#{TEST_PREFIX}/hello", "world")
