@@ -111,7 +111,6 @@ class Etcd::Kv
           :value => value,
         },
       }],
-      :failure => [] of Nil,
     }
 
     puts post_body.to_json

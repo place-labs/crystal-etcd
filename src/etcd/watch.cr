@@ -125,7 +125,8 @@ class Etcd::Watch
             # Ignore "created" message
             @block.call response.result.events unless response.created
           rescue e
-            raise Etcd::WatchError.new e.message
+            # Ignore close events
+            raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
           end
         end
         @watching = false

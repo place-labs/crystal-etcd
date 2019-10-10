@@ -2,7 +2,7 @@ require "./helper"
 
 module Etcd
   describe Kv do
-    describe "compare_and_swap", focus: true do
+    pending "compare_and_swap" do
       it "puts if compare succeeds" do
         client = Etcd.from_env
         key = "#{TEST_PREFIX}/hello"
