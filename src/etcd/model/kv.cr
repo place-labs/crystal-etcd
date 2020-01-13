@@ -34,4 +34,10 @@ module Etcd::Model
     getter deleted : Int32?
     getter prev_kvs : Array(Kv)?
   end
+
+  class TxnResponse < Base
+    getter header : Header
+    getter succeeded : Bool = false
+    getter responses : Array(JSON::Any) = [] of JSON::Any
+  end
 end

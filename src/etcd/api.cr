@@ -51,8 +51,10 @@ class Etcd::Api
       value.transform_values { |v| to_stringly(v) }
     when NamedTuple
       to_stringly(value.to_h)
-    when String, Bool
-      value
+    when String
+      value.as(String)
+    when Bool
+      value.as(Bool)
     else
       value.to_s
     end

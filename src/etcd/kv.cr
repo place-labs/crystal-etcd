@@ -96,8 +96,40 @@ class Etcd::Kv
   # Non-Standard Requests
   ##############################################################################
 
-  def compare_and_swap(key, value, previous_value)
-    key, value, previous_value = {key, value, previous_value}.map &->Base64.strict_encode(String)
+  # Sets a key if the key is not already present.
+  #
+  # Wrapper over the etcd transaction API.
+  def put_not_exists(key : String, value, lease : Int64 = 0_i64) : Bool
+    key = Base64.strict_encode(key)
+    value = Base64.strict_encode(value.to_s)
+    post_body = {
+      :compare => [{
+        :key    => key,
+        :value  => Base64.strict_encode("0"),
+        :target => "VERSION",
+        :result => "EQUAL",
+      }],
+      :success => [{
+        :request_put => {
+          :key          => key,
+          :value        => value,
+          :lease        => lease,
+          :ignore_lease => false,
+        },
+      }],
+    }
+
+    response = client.api.post("/kv/txn", post_body)
+    Model::TxnResponse.from_json(response.body).succeeded
+  end
+
+  # Sets a `key` if the given `previous_value` matches the existing value for `key`
+  #
+  # Wrapper over the etcd transaction API.
+  def compare_and_swap(key, value, previous_value) : Bool
+    key = Base64.strict_encode(key)
+    value = Base64.strict_encode(value.to_s)
+    previous_value = Base64.strict_encode(previous_value.to_s)
     post_body = {
       :compare => [{
         :key    => key,
@@ -113,10 +145,8 @@ class Etcd::Kv
       }],
     }
 
-    puts post_body.to_json
-    response = client.api.post("/kv/txn", post_body.to_json)
-
-    response
+    response = client.api.post("/kv/txn", post_body)
+    Model::TxnResponse.from_json(response.body).succeeded
   end
 
   def get(key) : String?
