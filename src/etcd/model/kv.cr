@@ -5,7 +5,7 @@ module Etcd::Model
     @[JSON::Field(converter: Etcd::Model::Base64Converter)]
     getter key : String
     @[JSON::Field(converter: Etcd::Model::Base64Converter)]
-    getter value : String?
+    getter value : String
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
     getter create_revision : UInt64?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
@@ -19,8 +19,8 @@ module Etcd::Model
   class RangeResponse < Base
     getter header : Header?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
-    getter count : Int32?
-    getter kvs : Array(Kv)?
+    getter count : Int32 = 0
+    getter kvs : Array(Etcd::Model::Kv) = [] of Etcd::Model::Kv
   end
 
   class PutResponse < Base
@@ -31,8 +31,8 @@ module Etcd::Model
   class DeleteResponse < Base
     getter header : Header
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
-    getter deleted : Int32?
-    getter prev_kvs : Array(Kv)?
+    getter deleted : Int32 = 0
+    getter prev_kvs : Array(Etcd::Model::Kv) = [] of Etcd::Model::Kv
   end
 
   class TxnResponse < Base

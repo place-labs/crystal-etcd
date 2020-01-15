@@ -54,7 +54,7 @@ class Etcd::Api
     when String
       value.as(String)
     when Bool
-      value.as(Bool)
+      value
     else
       value.to_s
     end
