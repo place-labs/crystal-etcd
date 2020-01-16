@@ -38,6 +38,12 @@ module Etcd::Model
   class TxnResponse < Base
     getter header : Header
     getter succeeded : Bool = false
-    getter responses : Array(JSON::Any) = [] of JSON::Any
+
+    alias Response = NamedTuple(
+      response_range: Etcd::Model::RangeResponse?,
+      response_put: Etcd::Model::PutResponse?,
+      response_delete: Etcd::Model::DeleteResponse?,
+    )
+    getter responses : Array(Etcd::Model::TxnResponse::Response) = [] of Etcd::Model::TxnResponse::Response
   end
 end

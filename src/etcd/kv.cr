@@ -129,26 +129,25 @@ module Etcd
     #
     # Wrapper over the etcd transaction API.
     def compare_and_swap(key, value, previous_value) : Bool
-      key = Base64.strict_encode(key)
-      value = Base64.strict_encode(value.to_s)
-      previous_value = Base64.strict_encode(previous_value.to_s)
+      encoded_key = Base64.strict_encode(key)
+      encoded_value = Base64.strict_encode(value.to_s)
+      encoded_previous_value = Base64.strict_encode(previous_value.to_s)
       post_body = {
         :compare => [{
-          :key    => key,
-          :value  => previous_value,
+          :key    => encoded_key,
+          :value  => encoded_previous_value,
           :target => "VALUE",
           :result => "EQUAL",
         }],
         :success => [{
           :request_put => {
-            :key   => key,
-            :value => value,
+            :key   => encoded_key,
+            :value => encoded_value,
           },
         }],
       }
 
-      response = client.api.post("/kv/txn", post_body)
-      Model::TxnResponse.from_json(response.body).succeeded
+      Model::TxnResponse.from_json(client.api.post("/kv/txn", post_body).body).succeeded
     end
 
     def get(key) : String?

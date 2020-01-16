@@ -9,13 +9,13 @@ module Etcd::Model
 
   class Header < Base
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
-    getter cluster_id : UInt64
+    getter cluster_id : UInt64?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
-    getter member_id : UInt64
+    getter member_id : UInt64?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int64))]
     getter revision : Int64
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
-    getter raft_term : UInt64
+    getter raft_term : UInt64?
   end
 
   # Converter for Base64 encoded values
