@@ -41,7 +41,7 @@ class Etcd::Watch
   def watch(
     key,
     range_end : String? = nil,
-    filters : Array(WatchFilter)? = nil,
+    filters : Array(Watcher::WatchFilter)? = nil,
     start_revision : Int64? = nil,
     progress_notify : Bool? = nil,
     base64_keys : Bool = true,
