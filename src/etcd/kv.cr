@@ -128,7 +128,7 @@ module Etcd
     # Sets a `key` if the given `previous_value` matches the existing value for `key`
     #
     # Wrapper over the etcd transaction API.
-    def compare_and_swap(key, value, previous_value) : Bool
+    def compare_and_swap(key, value, previous_value, lease_id : Int64 = 0_i64) : Bool
       encoded_key = Base64.strict_encode(key)
       encoded_value = Base64.strict_encode(value.to_s)
       encoded_previous_value = Base64.strict_encode(previous_value.to_s)
@@ -143,6 +143,7 @@ module Etcd
           :request_put => {
             :key   => encoded_key,
             :value => encoded_value,
+            :lease => lease_id,
           },
         }],
       }
