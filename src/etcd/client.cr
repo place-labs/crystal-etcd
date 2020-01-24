@@ -7,6 +7,8 @@ class Etcd::Client
   getter api : Etcd::Api
   private getter create_api : Proc(Etcd::Api)
 
+  delegate close, to: api.connection
+
   def initialize(url : URI, api_version : String? = nil)
     @create_api = ->{ Etcd::Api.new(url) }
     @api = @create_api.call
