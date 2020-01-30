@@ -2,15 +2,46 @@ require "./helper"
 
 module Etcd
   describe Watch do
-    it "watches a prefix" do
+    it "watches a key" do
+      ttl = 5_i64
+
+      key = "#{TEST_PREFIX}/footy"
+      values = ["bat", "bar", "bath"]
+
+      received = [] of Etcd::Model::WatchEvent
+      watcher = Etcd.from_env.watch.watch(key) do |events|
+        received += events
+      end
+
+      begin
+        spawn { watcher.start }
+        Fiber.yield
+      rescue
+      end
+
       client = Etcd.from_env
+      lease = client.lease.grant ttl
+      values.each do |v|
+        client.kv.put(key, v, lease: lease[:id])
+      end
+
+      sleep 0.25
+
+      received.size.should eq 3
+      received.map(&.kv.value).should eq values
+
+      received.all? { |e| e.kv.key == key }.should be_true
+      watcher.stop
+    end
+
+    it "watches a prefix" do
       ttl = 5_i64
 
       key0, value0 = "#{TEST_PREFIX}/foo", "bar"
       key1, value1 = "#{TEST_PREFIX}/foot", "bath"
 
       received = [] of Etcd::Model::WatchEvent
-      watcher = client.watch.watch_prefix(key0) do |events|
+      watcher = Etcd.from_env.watch.watch_prefix(key0) do |events|
         received += events
       end
 
@@ -18,6 +49,8 @@ module Etcd
         spawn { watcher.start }
       rescue
       end
+
+      client = Etcd.from_env
       lease = client.lease.grant ttl
       client.kv.put(key0, value0, lease: lease[:id])
       client.kv.put(key1, value1, lease: lease[:id])
