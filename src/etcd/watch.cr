@@ -122,8 +122,8 @@ class Etcd::Watch
             response = Model::WatchResponse.from_json(chunk)
             raise IO::EOFError.new if response.error
 
-            # Ignore "created" message
-            @block.call response.result.events unless response.created
+            # Ignore "created" message, and empty events
+            @block.call response.result.events unless response.created || response.result.events.empty?
           rescue e
             # Ignore close events
             raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
