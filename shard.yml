@@ -1,5 +1,5 @@
 name: etcd
-version: 0.2.3
+version: 0.2.4
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
@@ -14,5 +14,5 @@ development_dependencies:
     github: crystal-ameba/ameba
     version: ~> 0.10.1
 
-crystal: 0.32.0
+crystal: 0.32.1
 license: MIT
