@@ -6,6 +6,12 @@ require "./model/watch"
 class Etcd::Watch
   include Utils
 
+  # Types for watch event filters
+  enum Filter
+    NOPUT    # filter put events
+    NODELETE # filter delete events
+  end
+
   private getter client : Etcd::Client
 
   def initialize(@client = Etcd::Client.new)
@@ -15,7 +21,7 @@ class Etcd::Watch
   # Exposes a synchronous interface to the watch session via `Etcd::Watcher`
   #
   # opts
-  #  filters         filters filter the events at server side before it sends back to the watcher.                                           [WatchFilter]
+  #  filters         filters filter the events at server side before it sends back to the watcher.                                           [Watch::Filter]
   #  start_revision  start_revision is an optional revision to watch from (inclusive). No start_revision is "now".                           Int64
   #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
   #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
@@ -32,7 +38,7 @@ class Etcd::Watch
   #
   # opts
   #  range_end       range_end is the end of the range [key, range_end) to watch.
-  #  filters         filter the events at server side before it sends back to the watcher.                                           [WatchFilter]
+  #  filters         filter the events at server side before it sends back to the watcher.                                           [Watch::Filter]
   #  start_revision  start_revision is an optional revision to watch from (inclusive). No start_revision is "now".                           Int64
   #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
   #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
@@ -41,7 +47,7 @@ class Etcd::Watch
   def watch(
     key,
     range_end : String? = nil,
-    filters : Array(Watcher::WatchFilter)? = nil,
+    filters : Array(Watch::Filter)? = nil,
     start_revision : Int64? = nil,
     progress_notify : Bool? = nil,
     base64_keys : Bool = true,
@@ -79,15 +85,9 @@ class Etcd::Watch
     private getter api : Etcd::Api
     private getter block : Proc(Array(Model::WatchEvent), Void)
     private getter range_end : String?
-    private getter filters : Array(WatchFilter)?
+    private getter filters : Array(Watch::Filter)?
     private getter start_revision : Int64?
     private getter progress_notify : Bool?
-
-    # Types for watch event filters
-    enum WatchFilter
-      NOPUT    # filter put events
-      NODELETE # filter delete events
-    end
 
     getter watching : Bool = false
 
