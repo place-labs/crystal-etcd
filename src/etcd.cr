@@ -9,7 +9,7 @@ module Etcd
   def from_env(api_version : String? = nil)
     client(
       host: ENV["ETCD_HOST"]? || "localhost",
-      port: ENV["ETCD_PORT"]?.try &.to_i,
+      port: ENV["ETCD_PORT"]?.try(&.to_i) || 2379,
       api_version: api_version,
     )
   end
