@@ -1,4 +1,5 @@
 require "tokenizer"
+require "retriable"
 
 require "./utils"
 require "./model/watch"
@@ -115,29 +116,41 @@ class Etcd::Watch
           :progress_notify => progress_notify,
         }.compact,
       }
-      api.post("/watch", post_body) do |stream|
-        @watching = true
-        consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
+      @watching = true
+      Retriable.retry(max_interval: 10.seconds) do
+        if watching
           begin
-            response = Model::WatchResponse.from_json(chunk)
-            raise IO::EOFError.new if response.error
+            api.post("/watch", post_body) do |stream|
+              consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
+                begin
+                  response = Model::WatchResponse.from_json(chunk)
+                  raise IO::EOFError.new if response.error
 
-            # Ignore "created" message, and empty events
-            @block.call response.result.events unless response.created || response.result.events.empty?
+                  # Ignore "created" message, and empty events
+                  @block.call response.result.events unless response.created || response.result.events.empty?
+                rescue e
+                  # Ignore close events
+                  raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
+                end
+              end
+            end
           rescue e
-            # Ignore close events
-            raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
+            # Ignore timeouts
+            unless e.is_a?(IO::Error) && e.message.try(&.includes? "Closed stream")
+              api.logger.error("Unhandled exception in Etcd::Watcher: #{e.inspect_with_backtrace}")
+            end
+
+            raise e
           end
         end
-        @watching = false
       end
     end
 
     # Close the client and stop the watcher
     def stop
       # TODO: When adding pooling, return connection to the conn pool
-      api.connection.close
       @watching = false
+      api.connection.close
     end
 
     # Partitions IO into JSON chunks (only objects!)

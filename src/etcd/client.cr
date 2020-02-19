@@ -9,13 +9,22 @@ class Etcd::Client
 
   delegate close, to: api.connection
 
-  def initialize(url : URI, api_version : String? = nil)
-    @create_api = ->{ Etcd::Api.new(url) }
+  def initialize(
+    url : URI,
+    api_version : String? = nil,
+    logger : Logger = Etcd.logger
+  )
+    @create_api = ->{ Etcd::Api.new(uri: url, logger: logger) }
     @api = @create_api.call
   end
 
-  def initialize(host : String = "localhost", port : Int32? = nil, api_version : String? = nil)
-    @create_api = ->{ Etcd::Api.new(host, port) }
+  def initialize(
+    host : String = "localhost",
+    port : Int32? = nil,
+    api_version : String? = nil,
+    logger : Logger = Etcd.logger
+  )
+    @create_api = ->{ Etcd::Api.new(host: host, port: port, logger: logger) }
     @api = @create_api.call
   end
 

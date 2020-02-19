@@ -1,10 +1,12 @@
 name: etcd
-version: 0.3.0
+version: 0.3.1
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
 
 dependencies:
+  retriable:
+    github: sija/retriable.cr
   tokenizer:
     github: spider-gazelle/tokenizer
 
@@ -14,5 +16,5 @@ development_dependencies:
     github: crystal-ameba/ameba
     version: ~> 0.10.1
 
-crystal: 0.32.1
+crystal: 0.33.0
 license: MIT
