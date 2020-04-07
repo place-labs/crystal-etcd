@@ -1,5 +1,5 @@
 require "tokenizer"
-require "retriable"
+require "simple_retry"
 
 require "./utils"
 require "./model/watch"
@@ -117,7 +117,11 @@ class Etcd::Watch
         }.compact,
       }
       @watching = true
-      Retriable.retry(max_interval: 10.seconds) do
+      SimpleRetry.try_to(
+        base_interval: 1.second,
+        max_interval: 10.seconds,
+        randomise: 500.milliseconds
+      ) do
         if watching
           begin
             api.post("/watch", post_body) do |stream|

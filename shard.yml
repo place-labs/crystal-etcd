@@ -1,12 +1,12 @@
 name: etcd
-version: 0.3.1
+version: 0.3.2
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
 
 dependencies:
-  retriable:
-    github: sija/retriable.cr
+  simple_retry:
+    github: spider-gazelle/simple_retry
   tokenizer:
     github: spider-gazelle/tokenizer
 
