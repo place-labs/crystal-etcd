@@ -118,9 +118,9 @@ class Etcd::Watch
       }
       @watching = true
       SimpleRetry.try_to(
-        base_interval: 1.second,
+        base_interval: 50.milliseconds,
         max_interval: 10.seconds,
-        randomise: 500.milliseconds
+        randomise: 100.milliseconds
       ) do
         if watching
           begin
