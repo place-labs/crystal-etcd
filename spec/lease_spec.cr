@@ -48,7 +48,7 @@ module Etcd
       lease = client.lease.grant ttl
       new_ttl = client.lease.keep_alive lease[:id]
 
-      new_ttl.should be > 0
+      new_ttl.not_nil!.should be > 0
     end
   end
 end

@@ -23,7 +23,7 @@ class Etcd::Lease
     response = client.api.post("/lease/keepalive", {ID: id})
     body = JSON.parse(response.body)
 
-    body["result"]["TTL"].to_s.to_i64
+    body["result"]["TTL"]?.try &.to_s.to_i64
   end
 
   # Queries the TTL of a lease
