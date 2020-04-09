@@ -141,7 +141,7 @@ class Etcd::Watch
           rescue e
             # Ignore timeouts
             unless e.is_a?(IO::Error) && e.message.try(&.includes? "Closed stream")
-              api.logger.error("Unhandled exception in Etcd::Watcher: #{e.inspect_with_backtrace}")
+              Log.error { "Unhandled exception in Etcd::Watcher: #{e.inspect_with_backtrace}" }
             end
 
             raise e
