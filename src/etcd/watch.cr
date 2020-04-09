@@ -186,12 +186,8 @@ class Etcd::Watch
           tokenizer.extract(raw_data[0, bytes_read]).each do |message|
             spawn { block.call String.new(message) }
           end
-        rescue e : Errno
-          if e.message.try &.includes?("Bad file descriptor")
-            break
-          else
-            raise e
-          end
+        rescue e : Socket::Error
+          break
         end
       end
     end

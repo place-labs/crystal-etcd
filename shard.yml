@@ -1,5 +1,5 @@
 name: etcd
-version: 0.3.3
+version: 0.3.4
 
 authors:
   - Caspian Baska <caspianbaska@gmail.com>
@@ -14,7 +14,7 @@ development_dependencies:
   # Linter
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 0.10.1
+    version: ~> 0.10
 
 crystal: 0.33.0
 license: MIT
