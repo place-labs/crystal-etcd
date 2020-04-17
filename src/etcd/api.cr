@@ -1,5 +1,4 @@
 require "http"
-require "logger"
 
 require "./error"
 
@@ -7,7 +6,6 @@ class Etcd::Api
   # :no_doc:
   # Underlying HTTP connection - exposed for access from test framework only.
   getter connection : HTTP::Client
-  getter logger : Logger
 
   # API version
   property api_version : String
@@ -24,7 +22,6 @@ class Etcd::Api
   def initialize(
     url : URI,
     api_version : String? = nil,
-    @logger : Logger = Etcd.logger
   )
     @api_version = api_version || DEFAULT_VERSION
     @connection = HTTP::Client.new(url)
@@ -34,7 +31,6 @@ class Etcd::Api
     host : String = "localhost",
     port : Int32? = nil,
     api_version : String? = nil,
-    @logger : Logger = Etcd.logger
   )
     @api_version = api_version || DEFAULT_VERSION
     port ||= DEFAULT_PORT

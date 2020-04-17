@@ -12,9 +12,8 @@ class Etcd::Client
   def initialize(
     url : URI,
     api_version : String? = nil,
-    logger : Logger = Etcd.logger
   )
-    @create_api = ->{ Etcd::Api.new(uri: url, logger: logger) }
+    @create_api = ->{ Etcd::Api.new(uri: url) }
     @api = @create_api.call
   end
 
@@ -22,9 +21,8 @@ class Etcd::Client
     host : String = "localhost",
     port : Int32? = nil,
     api_version : String? = nil,
-    logger : Logger = Etcd.logger
   )
-    @create_api = ->{ Etcd::Api.new(host: host, port: port, logger: logger) }
+    @create_api = ->{ Etcd::Api.new(host: host, port: port) }
     @api = @create_api.call
   end
 
