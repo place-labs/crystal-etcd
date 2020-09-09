@@ -1,8 +1,9 @@
 name: etcd
 version: 1.0.1
+crystal: ~> 0.35
 
 authors:
-  - Caspian Baska <caspianbaska@gmail.com>
+  - Caspian Baska <caspian@place.tech>
 
 dependencies:
   simple_retry:

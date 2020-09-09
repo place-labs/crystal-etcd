@@ -3,6 +3,7 @@ require "./utils"
 
 module Etcd
   class Kv
+    Log = ::Log.for(self)
     include Utils
 
     private getter client : Etcd::Client
