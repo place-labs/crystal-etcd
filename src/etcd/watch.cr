@@ -60,8 +60,8 @@ class Etcd::Watch
     end
 
     Watcher.new(
-      api: client.spawn_api,
       key: key,
+      create_api: ->@client.spawn_api,
       range_end: range_end,
       filters: filters,
       start_revision: start_revision,
@@ -82,7 +82,10 @@ class Etcd::Watch
   # spawn { watcher.start }
   # ```
   class Watcher
+    Log = ::Log.for(self)
+
     getter key : String
+    private getter create_api : Proc(Etcd::Api)
     private getter api : Etcd::Api
     private getter block : Proc(Array(Model::WatchEvent), Void)
     private getter range_end : String?
@@ -90,22 +93,23 @@ class Etcd::Watch
     private getter start_revision : Int64?
     private getter progress_notify : Bool?
 
-    getter watching : Bool = false
+    getter? watching : Bool = false
 
     def initialize(
       @key,
-      @api : Etcd::Api = Etcd::Api.new,
+      @create_api = ->Etcd::Api.new,
       @range_end = nil,
       @filters = nil,
       @start_revision = nil,
       @progress_notify = nil,
       &@block : Array(Model::WatchEvent) -> Void
     )
+      @api = create_api.call
     end
 
     # Start the watcher
     def start
-      raise Etcd::WatchError.new "Already watching #{@key}" if watching
+      raise Etcd::WatchError.new "Already watching #{@key}" if watching?
       # Check out from the thread pool here
       post_body = {
         create_request: {
@@ -122,13 +126,13 @@ class Etcd::Watch
         max_interval: 10.seconds,
         randomise: 100.milliseconds
       ) do
-        if watching
+        if watching?
           begin
             api.post("/watch", post_body) do |stream|
               consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
                 begin
                   response = Model::WatchResponse.from_json(chunk)
-                  raise IO::EOFError.new if response.error
+                  raise IO::EOFError.new unless response.error.nil?
 
                   # Ignore "created" message, and empty events
                   @block.call response.result.events unless response.created || response.result.events.empty?
@@ -142,6 +146,13 @@ class Etcd::Watch
             # Ignore timeouts
             unless e.is_a?(IO::Error) && e.message.try(&.includes? "Closed stream")
               Log.error(exception: e) { "Unhandled exception in Etcd::Watcher" }
+            end
+
+            # Generate a new api connection if still watching
+            if watching?
+              Log.warn { "Generating new etcd client while watching" }
+              api.connection.close
+              @api = create_api.call
             end
 
             raise e
@@ -184,7 +195,7 @@ class Etcd::Watch
           bytes_read = io.read(raw_data)
           break if bytes_read == 0 # IO was closed
           tokenizer.extract(raw_data[0, bytes_read]).each do |message|
-            spawn { block.call String.new(message) }
+            yield String.new(message)
           end
         rescue e : Socket::Error
           break

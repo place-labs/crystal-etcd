@@ -6,28 +6,26 @@ module Etcd
       ttl = 5_i64
 
       key = "#{TEST_PREFIX}/footy"
-      values = ["bat", "bar", "bath"]
+      values = ["a", "b", "c", "d", "e"]
 
       received = [] of Etcd::Model::WatchEvent
       watcher = Etcd.from_env.watch.watch(key) do |events|
         received += events
       end
 
-      begin
-        spawn { watcher.start }
-        Fiber.yield
-      rescue
-      end
+      spawn { watcher.start }
+
+      Fiber.yield
 
       client = Etcd.from_env
-      lease = client.lease.grant ttl
       values.each do |v|
+        lease = client.lease.grant ttl
         client.kv.put(key, v, lease: lease[:id])
       end
 
-      sleep 0.25
+      sleep 0.2
 
-      received.size.should eq 3
+      received.size.should eq values.size
       received.map(&.kv.value).should eq values
 
       received.all? { |e| e.kv.key == key }.should be_true
