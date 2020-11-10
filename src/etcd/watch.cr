@@ -191,14 +191,10 @@ class Etcd::Watch
     protected def consume_io(io, tokenizer, &block : String -> Void)
       raw_data = Bytes.new(4096)
       while !io.closed?
-        begin
-          bytes_read = io.read(raw_data)
-          break if bytes_read == 0 # IO was closed
-          tokenizer.extract(raw_data[0, bytes_read]).each do |message|
-            yield String.new(message)
-          end
-        rescue e : Socket::Error
-          break
+        bytes_read = io.read(raw_data)
+        break if bytes_read == 0 # IO was closed
+        tokenizer.extract(raw_data[0, bytes_read]).each do |message|
+          yield String.new(message)
         end
       end
     end
