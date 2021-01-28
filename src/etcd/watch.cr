@@ -116,7 +116,8 @@ class Etcd::Watch
         select
         when event = self.event_channel.receive?
           break if event.nil?
-          @block.call event
+          # Don't forward empty events
+          @block.call(event) unless event.empty?
         when timeout 1.minute
           # If no events received, trigger a client reconnect as connection may be silently dropped
           api.connection.close
@@ -154,8 +155,8 @@ class Etcd::Watch
                   response = Model::WatchResponse.from_json(chunk)
                   raise IO::EOFError.new unless response.error.nil?
 
-                  # Ignore "created" message, and empty events
-                  self.event_channel.send(response.result.events) unless response.created || response.result.events.empty?
+                  # Ignore "created" message
+                  self.event_channel.send(response.result.events) unless response.created
                 rescue e
                   # Ignore close events
                   raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
