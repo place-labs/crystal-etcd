@@ -1,7 +1,6 @@
 # crystal-etcd
 
-[![Build Status](https://travis-ci.org/place-labs/crystal-etcd.svg?branch=master)](https://travis-ci.org/place-labs/crystal-etcd)
-[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://place-labs.github.io/crystal-etcd/)
+![CI](https://github.com/place-labs/models/workflows/CI/badge.svg)
 
 [etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's [gRPC-HTTP gateway](https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md).
 
