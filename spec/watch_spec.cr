@@ -23,7 +23,7 @@ module Etcd
         client.kv.put(key, v, lease: lease[:id])
       end
 
-      sleep 0.2
+      sleep 10.milliseconds
 
       received.size.should eq values.size
       received.map(&.kv.value).should eq values
@@ -53,7 +53,7 @@ module Etcd
       client.kv.put(key0, value0, lease: lease[:id])
       client.kv.put(key1, value1, lease: lease[:id])
 
-      sleep 0.25
+      sleep 10.milliseconds
 
       received.size.should eq 2
       first, second = received
