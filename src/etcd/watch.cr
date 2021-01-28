@@ -93,6 +93,8 @@ class Etcd::Watch
     private getter start_revision : Int64?
     private getter progress_notify : Bool?
 
+    private property event_channel : Channel(Array(Model::WatchEvent)) { Channel(Array(Model::WatchEvent)).new }
+
     getter? watching : Bool = false
 
     def initialize(
@@ -107,9 +109,27 @@ class Etcd::Watch
       @api = create_api.call
     end
 
+    # Pass events to captured block
+    private def forward_events
+      self.event_channel = Channel(Array(Model::WatchEvent)).new if self.event_channel.closed?
+      loop do
+        select
+        when event = self.event_channel.receive?
+          break if event.nil?
+          @block.call event
+        when timeout 1.minute
+          # If no events received, trigger a client reconnect as connection may be silently dropped
+          api.connection.close
+        end
+      end
+    end
+
     # Start the watcher
     def start
       raise Etcd::WatchError.new "Already watching #{@key}" if watching?
+
+      spawn { forward_events }
+
       # Check out from the thread pool here
       post_body = {
         create_request: {
@@ -135,7 +155,7 @@ class Etcd::Watch
                   raise IO::EOFError.new unless response.error.nil?
 
                   # Ignore "created" message, and empty events
-                  @block.call response.result.events unless response.created || response.result.events.empty?
+                  self.event_channel.send(response.result.events) unless response.created || response.result.events.empty?
                 rescue e
                   # Ignore close events
                   raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
@@ -165,6 +185,7 @@ class Etcd::Watch
     def stop
       # TODO: When adding pooling, return connection to the conn pool
       @watching = false
+      self.event_channel.close
       api.connection.close
     end
 
