@@ -1,7 +1,7 @@
 # crystal-etcd
 
-[![Build Status](https://travis-ci.org/aca-labs/crystal-etcd.svg?branch=master)](https://travis-ci.org/aca-labs/crystal-etcd)
-[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://aca-labs.github.io/crystal-etcd/)
+[![Build Status](https://travis-ci.org/place-labs/crystal-etcd.svg?branch=master)](https://travis-ci.org/place-labs/crystal-etcd)
+[![Docs](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://place-labs.github.io/crystal-etcd/)
 
 [etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's [gRPC-HTTP gateway](https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md).
 
@@ -14,7 +14,7 @@ This client was developed against etcd v3.3, to use a higher version, set `api_v
    ```yaml
    dependencies:
      etcd:
-       github: aca-labs/crystal-etcd
+       github: place-labs/crystal-etcd
    ```
 
 2. Run `shards install`
@@ -96,7 +96,7 @@ client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/se
 
 ## Contributing
 
-1. [Fork it](https://github.com/aca-labs/crystal-etcd/fork)
+1. [Fork it](https://github.com/place-labs/crystal-etcd/fork)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -104,7 +104,7 @@ client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/se
 
 ## See Also
 
-- [crystal-docker](https://github.com/aca-labs/crystal-docker)
+- [crystal-docker](https://github.com/place-labs/crystal-docker)
 
 ## Contributors
 
