@@ -171,7 +171,7 @@ class Etcd::Watch
 
             # Generate a new api connection if still watching
             if watching?
-              Log.warn { "Generating new etcd client while watching" }
+              Log.warn { "#{e}: generating new etcd client while watching" }
               api.connection.close
               @api = create_api.call
             end
@@ -195,14 +195,16 @@ class Etcd::Watch
       Tokenizer.new do |io|
         length, unpaired = 0, 0
         loop do
-          char = io.read_char
-          break unless char
-          unpaired += 1 if char == '{'
-          unpaired -= 1 if char == '}'
+          case io.read_char
+          when '{' then unpaired += 1
+          when '}' then unpaired -= 1
+          when Nil then break
+          end
+
           length += 1
-          break if unpaired == 0
+          break if unpaired.zero?
         end
-        unpaired == 0 && length > 0 ? length : -1
+        unpaired.zero? && length > 0 ? length : -1
       end
     end
 
