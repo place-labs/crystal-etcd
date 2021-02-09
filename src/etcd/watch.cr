@@ -172,7 +172,7 @@ class Etcd::Watch
 
             # Generate a new api connection if still watching
             if watching?
-              Log.warn(exception: e) { "generating new etcd client" }
+              Log.warn { "#{e} generating new etcd client" }
               api.connection.close
               @api = create_api.call
             end
