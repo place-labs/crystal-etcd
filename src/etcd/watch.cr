@@ -127,7 +127,8 @@ class Etcd::Watch
 
     # Start the watcher
     def start
-      raise Etcd::WatchError.new "Already watching #{@key}" if watching?
+      raise Etcd::WatchError.new "Already watching `#{key}`" if watching?
+      Log.context.set({key: Base64.decode_string(key), range_end: range_end.try &->Base64.decode_string(String)})
 
       spawn { forward_events }
 
@@ -166,12 +167,12 @@ class Etcd::Watch
           rescue e
             # Ignore timeouts
             unless e.is_a?(IO::Error) && e.message.try(&.includes? "Closed stream")
-              Log.error(exception: e) { "Unhandled exception in Etcd::Watcher" }
+              Log.error(exception: e) { "while watching" }
             end
 
             # Generate a new api connection if still watching
             if watching?
-              Log.warn { "#{e}: generating new etcd client while watching" }
+              Log.warn(exception: e) { "generating new etcd client" }
               api.connection.close
               @api = create_api.call
             end
