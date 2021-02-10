@@ -41,43 +41,31 @@ abstract struct Response
 end
 
 struct Etcd::Lease::Grant < Response
-  @[JSON::Field(key: "ID", converter: Etcd::Int64Converter)]
+  @[JSON::Field(key: "ID", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter id : Int64
 
-  @[JSON::Field(key: "TTL", converter: Etcd::Int64Converter)]
+  @[JSON::Field(key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter ttl : Int64
 end
 
 struct Etcd::Lease::KeepAlive < Response
-  @[JSON::Field(root: "TTL", converter: Etcd::Int64Converter)]
+  @[JSON::Field(root: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter result : Int64?
 end
 
 struct Etcd::Lease::TimeToLive < Response
-  @[JSON::Field(key: "grantedTTL", converter: Etcd::Int64Converter)]
+  @[JSON::Field(key: "grantedTTL", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter granted_ttl : Int64
 
-  @[JSON::Field(key: "TTL", converter: Etcd::Int64Converter)]
+  @[JSON::Field(key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter ttl : Int64
 end
 
 struct Etcd::Lease::LeasesItem < Response
-  @[JSON::Field(key: "ID", converter: Etcd::Int64Converter)]
+  @[JSON::Field(key: "ID", converter: Etcd::Model::StringTypeConverter(Int64))]
   getter id : Int64
 end
 
 struct Etcd::Lease::LeasesArray < Response
   getter leases : Array(LeasesItem)
-end
-
-module Etcd::Int64Converter
-  extend self
-
-  def from_json(pull : JSON::PullParser) : Int64
-    pull.read_string.to_i64
-  end
-
-  def to_json(json : JSON::Builder)
-    json.number(self)
-  end
 end
