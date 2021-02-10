@@ -4,6 +4,7 @@ crystal: ~> 0.35
 
 authors:
   - Caspian Baska <caspian@place.tech>
+  - Duke Nguyen <duke@place.technology>
 
 dependencies:
   simple_retry:
