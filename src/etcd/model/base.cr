@@ -3,11 +3,11 @@ require "json"
 # Etcd data models
 # Refer to documentation https://coreos.com/etcd/docs/latest/dev-guide/api_reference_v3.html
 module Etcd::Model
-  private class Base
+  private abstract struct Base
     include JSON::Serializable
   end
 
-  class Header < Base
+  struct Header < Base
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]
     getter cluster_id : UInt64?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(UInt64))]

@@ -2,24 +2,24 @@ require "./base"
 require "./kv"
 
 module Etcd::Model
-  class WatchResponse < Base
+  struct WatchResponse < Base
     getter result : WatchResult = Etcd::Model::WatchResult.new
     getter error : WatchError?
     getter created : Bool = false
   end
 
-  class WatchError < Base
+  struct WatchError < Base
     getter http_code : Int32
   end
 
-  class WatchResult < Base
+  struct WatchResult < Base
     getter events : Array(Etcd::Model::WatchEvent) = [] of Etcd::Model::WatchEvent
 
     def initialize(@events = [] of Etcd::Model::WatchEvent)
     end
   end
 
-  class WatchEvent < Base
+  struct WatchEvent < Base
     enum Type
       PUT
       DELETE

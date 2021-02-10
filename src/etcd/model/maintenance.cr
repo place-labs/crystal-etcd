@@ -1,7 +1,7 @@
 require "./base"
 
 module Etcd::Model
-  class Status < Base
+  struct Status < Base
     getter header : Header
     getter version : String
     @[JSON::Field(key: "dbSize", converter: Etcd::Model::StringTypeConverter(Int64))]

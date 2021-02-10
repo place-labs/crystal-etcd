@@ -1,7 +1,7 @@
 require "./base"
 
 module Etcd::Model
-  class Kv < Base
+  struct Kv < Base
     @[JSON::Field(converter: Etcd::Model::Base64Converter)]
     getter key : String
     @[JSON::Field(converter: Etcd::Model::Base64Converter)]
@@ -16,26 +16,26 @@ module Etcd::Model
     getter lease : Int64?
   end
 
-  class RangeResponse < Base
+  struct RangeResponse < Base
     getter header : Header?
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
     getter count : Int32 = 0
     getter kvs : Array(Etcd::Model::Kv) = [] of Etcd::Model::Kv
   end
 
-  class PutResponse < Base
+  struct PutResponse < Base
     getter header : Header
     getter prev_kv : Kv?
   end
 
-  class DeleteResponse < Base
+  struct DeleteResponse < Base
     getter header : Header
     @[JSON::Field(converter: Etcd::Model::StringTypeConverter(Int32))]
     getter deleted : Int32 = 0
     getter prev_kvs : Array(Etcd::Model::Kv) = [] of Etcd::Model::Kv
   end
 
-  class TxnResponse < Base
+  struct TxnResponse < Base
     getter header : Header
     getter succeeded : Bool = false
 
