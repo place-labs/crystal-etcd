@@ -8,8 +8,7 @@ class Etcd::Maintenance
 
   # Queries status of etcd instance
   def status
-    response_body = client.api.post("/maintenance/status").body
-    Model::Status.from_json(response_body)
+    Model::Status.from_json(client.api.post("/maintenance/status").body)
   end
 
   # Queries for current leader of the etcd cluster
