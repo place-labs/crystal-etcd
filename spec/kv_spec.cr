@@ -33,7 +33,7 @@ module Etcd
         lease = client.lease.grant 5
         key = "#{TEST_PREFIX}/#{UUID.random}"
         value = "hello world"
-        success = client.kv.put_not_exists(key, value: value, lease: lease[:id])
+        success = client.kv.put_not_exists(key, value: value, lease: lease.id)
         success.should be_true
         client.kv.get(key).should eq value
       end
@@ -78,8 +78,8 @@ module Etcd
       key0, value0 = "#{TEST_PREFIX}/foo", "bar"
       key1, value1 = "#{TEST_PREFIX}/foot", "bath"
 
-      client.kv.put(key0, value0, lease: lease[:id])
-      client.kv.put(key1, value1, lease: lease[:id])
+      client.kv.put(key0, value0, lease: lease.id)
+      client.kv.put(key1, value1, lease: lease.id)
       response = client.kv.range_prefix(key0)
 
       response.should be_a Model::RangeResponse

@@ -20,7 +20,7 @@ module Etcd
       client = Etcd.from_env
       values.each do |v|
         lease = client.lease.grant ttl
-        client.kv.put(key, v, lease: lease[:id])
+        client.kv.put(key, v, lease: lease.id)
       end
 
       sleep 10.milliseconds
@@ -50,8 +50,8 @@ module Etcd
 
       client = Etcd.from_env
       lease = client.lease.grant ttl
-      client.kv.put(key0, value0, lease: lease[:id])
-      client.kv.put(key1, value1, lease: lease[:id])
+      client.kv.put(key0, value0, lease: lease.id)
+      client.kv.put(key1, value1, lease: lease.id)
 
       sleep 10.milliseconds
 
@@ -88,9 +88,9 @@ module Etcd
         client = Etcd.from_env
 
         lease = client.lease.grant ttl
-        client.kv.put(key0, value0, lease: lease[:id])
+        client.kv.put(key0, value0, lease: lease.id)
         client.kv.delete(key0)
-        client.kv.put(key1, value1, lease: lease[:id])
+        client.kv.put(key1, value1, lease: lease.id)
 
         received.size.should eq 1
 
@@ -116,8 +116,8 @@ module Etcd
 
         client = Etcd.from_env
         lease = client.lease.grant ttl
-        client.kv.put(key0, value0, lease: lease[:id])
-        client.kv.put(key1, value1, lease: lease[:id])
+        client.kv.put(key0, value0, lease: lease.id)
+        client.kv.put(key1, value1, lease: lease.id)
         client.kv.delete(key0)
 
         received.size.should eq 2
