@@ -26,7 +26,7 @@ module Etcd
 
       lease = client.lease.grant ttl
       active_leases = client.lease.leases
-      lease_present = active_leases.any? { |id| id == lease.id }
+      lease_present = active_leases.any?(&.==(lease.id))
 
       lease_present.should be_true
     end

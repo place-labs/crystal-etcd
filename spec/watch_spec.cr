@@ -28,7 +28,7 @@ module Etcd
       received.size.should eq values.size
       received.map(&.kv.value).should eq values
 
-      received.all? { |e| e.kv.key == key }.should be_true
+      received.all?(&.kv.key.==(key)).should be_true
       watcher.stop
     end
 
