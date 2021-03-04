@@ -17,7 +17,8 @@ class Etcd::Lease
   # Must be invoked periodically to avoid key loss.
   def keep_alive(id : Int64) : Int64?
     Model::KeepAlive.from_json(client.api.post("/lease/keepalive", {ID: id}).body).result
-  rescue
+  rescue e : Exception
+    raise e unless e.message == "JSON key not found: TTL"
     nil
   end
 
