@@ -15,8 +15,10 @@ class Etcd::Lease
 
   # Requests persistence of lease.
   # Must be invoked periodically to avoid key loss.
-  def keep_alive(id : Int64)
+  def keep_alive(id : Int64) : Int64?
     Model::KeepAlive.from_json(client.api.post("/lease/keepalive", {ID: id}).body).result
+  rescue e
+    nil
   end
 
   # Queries the TTL of a lease
