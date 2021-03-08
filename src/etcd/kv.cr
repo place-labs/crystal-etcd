@@ -38,7 +38,7 @@ module Etcd
       }.compact
       response = client.api.post("/kv/put", options)
 
-      Model::PutResponse.from_json(response.body)
+      Model::Put.from_json(response.body)
     end
 
     # Deletes key or range of keys
@@ -55,7 +55,7 @@ module Etcd
       }.compact
       response = client.api.post("/kv/deleterange", post_body)
 
-      Model::DeleteResponse.from_json(response.body)
+      Model::Delete.from_json(response.body)
     end
 
     # Deletes an entire keyspace prefix
@@ -66,7 +66,7 @@ module Etcd
     end
 
     # Queries a range of keys
-    def range(key, range_end : String? = nil, base64_keys : Bool = true)
+    def range(key, range_end : String? = nil, limit : Int64 = 0_i64, base64_keys : Bool = true)
       # Otherwise bypass encoding keys
       if base64_keys
         key = Base64.strict_encode(key)
@@ -76,17 +76,18 @@ module Etcd
       post_body = {
         :key       => key,
         :range_end => range_end,
+        :limit     => limit,
       }.compact
       response = client.api.post("/kv/range", post_body)
 
-      Model::RangeResponse.from_json(response.body)
+      Model::Range.from_json(response.body)
     end
 
     # Query keys beneath a prefix
-    def range_prefix(prefix)
+    def range_prefix(prefix, limit : Int64 = 0_i64)
       encoded_prefix = Base64.strict_encode(prefix)
       range_end = prefix_range_end encoded_prefix
-      range(encoded_prefix, range_end, base64_keys: false)
+      range(encoded_prefix, range_end, limit, base64_keys: false)
     end
 
     # Query all keys >= key
@@ -94,6 +95,15 @@ module Etcd
       encoded_key = Base64.strict_encode(key)
       range_end = "\0"
       range(encoded_key, range_end, base64_keys: false)
+    end
+
+    def txn(post_body)
+      response = client.api.post("/kv/txn", post_body)
+      Model::Txn.from_json(response.body).succeeded
+    end
+
+    def compaction(physical : Bool, revision : Int64)
+      client.api.post("/kv/compaction", {:physical => physical, :revision => revision}).success?
     end
 
     # Non-Standard Requests
@@ -123,7 +133,7 @@ module Etcd
       }
 
       response = client.api.post("/kv/txn", post_body)
-      Model::TxnResponse.from_json(response.body).succeeded
+      Model::Txn.from_json(response.body).succeeded
     end
 
     # Moves a value from `key` to `key_destination`, deleting the kv at `key` in the process.
@@ -133,12 +143,20 @@ module Etcd
       value = Base64.strict_encode(value.to_s)
 
       post_body = {
-        :compare => [{
-          :key    => key_d,
-          :value  => Base64.strict_encode("0"),
-          :target => "VERSION",
-          :result => "EQUAL",
-        }],
+        :compare => [
+          {
+            :key    => key_d,
+            :value  => Base64.strict_encode("0"),
+            :target => "VERSION",
+            :result => "EQUAL",
+          },
+          {
+            :key    => key_o,
+            :value  => Base64.strict_encode("0"),
+            :target => "VERSION",
+            :result => "NOT_EQUAL",
+          },
+        ],
         :success => [
           {
             :request_put => {
@@ -186,7 +204,7 @@ module Etcd
         }],
       }
 
-      Model::TxnResponse.from_json(client.api.post("/kv/txn", post_body).body).succeeded
+      Model::Txn.from_json(client.api.post("/kv/txn", post_body).body).succeeded
     end
 
     def get(key) : String?
