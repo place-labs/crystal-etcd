@@ -3,8 +3,31 @@ require "json"
 # Etcd data models
 # Refer to documentation https://coreos.com/etcd/docs/latest/dev-guide/api_reference_v3.html
 module Etcd::Model
+  struct Enum
+    def to_json(json : JSON::Builder)
+      json.string(value)
+    end
+  end
+
   private abstract struct Base
     include JSON::Serializable
+  end
+
+  abstract struct WithHeader < Base
+    getter header : Header
+  end
+
+  struct Error < Base
+    getter details : Array(ErrorDetail)
+    getter grpc_code : Int32
+    getter http_code : Int32
+    getter http_status : String
+    getter message : String
+  end
+
+  struct ErrorDetail < Base
+    getter type_url : String
+    getter value : String # Bytes
   end
 
   struct Header < Base

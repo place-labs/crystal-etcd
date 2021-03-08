@@ -54,7 +54,7 @@ module Etcd
       client = Etcd.from_env
       response = client.kv.put("#{TEST_PREFIX}/hello", "world")
 
-      response.should be_a Model::PutResponse
+      response.should be_a Model::Put
     end
 
     it "queries a range of keys" do
@@ -64,7 +64,7 @@ module Etcd
       client.kv.put(key, value)
       response = client.kv.range(key)
 
-      response.should be_a Model::RangeResponse
+      response.should be_a Model::Range
       values = response.kvs || [] of Model::Kv
       value_present = values.any? { |r| r.key == key && r.value == value }
       value_present.should be_true
@@ -82,7 +82,7 @@ module Etcd
       client.kv.put(key1, value1, lease: lease.id)
       response = client.kv.range_prefix(key0)
 
-      response.should be_a Model::RangeResponse
+      response.should be_a Model::Range
       values = response.kvs || [] of Model::Kv
       key_present = values.any? { |r| r.key == key1 && r.value == value1 }
       key_present.should be_true

@@ -38,7 +38,7 @@ module Etcd
       }.compact
       response = client.api.post("/kv/put", options)
 
-      Model::PutResponse.from_json(response.body)
+      Model::Put.from_json(response.body)
     end
 
     # Deletes key or range of keys
@@ -55,7 +55,7 @@ module Etcd
       }.compact
       response = client.api.post("/kv/deleterange", post_body)
 
-      Model::DeleteResponse.from_json(response.body)
+      Model::Delete.from_json(response.body)
     end
 
     # Deletes an entire keyspace prefix
@@ -79,7 +79,7 @@ module Etcd
       }.compact
       response = client.api.post("/kv/range", post_body)
 
-      Model::RangeResponse.from_json(response.body)
+      Model::Range.from_json(response.body)
     end
 
     # Query keys beneath a prefix
@@ -94,6 +94,15 @@ module Etcd
       encoded_key = Base64.strict_encode(key)
       range_end = "\0"
       range(encoded_key, range_end, base64_keys: false)
+    end
+
+    def txn(post_body)
+      response = client.api.post("/kv/txn", post_body)
+      Model::Txn.from_json(response.body).succeeded
+    end
+
+    def compaction(physical : Bool, revision : Int64)
+      client.api.post("/kv/compaction", {:physical => physical, :revision => revision}).success?
     end
 
     # Non-Standard Requests
@@ -123,7 +132,7 @@ module Etcd
       }
 
       response = client.api.post("/kv/txn", post_body)
-      Model::TxnResponse.from_json(response.body).succeeded
+      Model::Txn.from_json(response.body).succeeded
     end
 
     # Sets a `key` if the given `previous_value` matches the existing value for `key`
@@ -149,7 +158,7 @@ module Etcd
         }],
       }
 
-      Model::TxnResponse.from_json(client.api.post("/kv/txn", post_body).body).succeeded
+      Model::Txn.from_json(client.api.post("/kv/txn", post_body).body).succeeded
     end
 
     def get(key) : String?
