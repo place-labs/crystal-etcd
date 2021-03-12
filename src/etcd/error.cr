@@ -11,6 +11,7 @@ module Etcd
     end
 
     def self.from_response(response)
+      pp! response
       new(response.status_code, response.body)
     end
   end

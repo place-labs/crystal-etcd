@@ -1,5 +1,5 @@
-require "tokenizer"
 require "simple_retry"
+require "tokenizer"
 
 require "./utils"
 require "./model/watch"
@@ -92,6 +92,7 @@ class Etcd::Watch
     private getter filters : Array(Watch::Filter)?
     private getter start_revision : Int64?
     private getter progress_notify : Bool?
+    private getter watch_id : String { Random.rand(0_i64..Int64::MAX).to_s }
 
     private property event_channel : Channel(Array(Model::WatchEvent)) { Channel(Array(Model::WatchEvent)).new }
 
@@ -128,7 +129,12 @@ class Etcd::Watch
     # Start the watcher
     def start
       raise Etcd::WatchError.new "Already watching `#{key}`" if watching?
-      Log.context.set({key: Base64.decode_string(key), range_end: range_end.try &->Base64.decode_string(String)})
+      Log.context.set({
+        key:       Base64.decode_string(key),
+        range_end: range_end.try &->Base64.decode_string(String),
+      })
+
+      Log.debug { "consuming watch events" }
 
       spawn { forward_events }
 
@@ -140,9 +146,13 @@ class Etcd::Watch
           :filters         => filters,
           :start_revision  => start_revision,
           :progress_notify => progress_notify,
+          :watch_id        => watch_id,
         }.compact,
       }
+
+      pp! post_body
       @watching = true
+
       SimpleRetry.try_to(
         base_interval: 50.milliseconds,
         max_interval: 10.seconds,
@@ -154,13 +164,26 @@ class Etcd::Watch
               consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
                 begin
                   response = Model::WatchResponse.from_json(chunk)
-                  raise IO::EOFError.new unless response.error.nil?
+                  pp! response
+                  unless response.error.nil?
+                    Log.error { "received error #{response.error} in watch" }
+                    raise IO::EOFError.new
+                  end
+
+                  if response.cancelled?
+                    Log.info { "cancelled watch feed" }
+                    return
+                  end
 
                   # Ignore "created" message
                   self.event_channel.send(response.result.events) unless response.created
+                rescue e : Channel::ClosedError
+                  return
                 rescue e
                   # Ignore close events
-                  raise Etcd::WatchError.new e.message unless e.message.try &.includes?("<EOF>")
+                  return if e.message.try &.includes?("<EOF>")
+
+                  raise Etcd::WatchError.new e.message
                 end
               end
             end
@@ -188,6 +211,11 @@ class Etcd::Watch
       # TODO: When adding pooling, return connection to the conn pool
       @watching = false
       self.event_channel.close
+
+      client = create_api.call
+      client.post("/watch", {cancel_request: {watch_id: watch_id}})
+      client.connection.close
+
       api.connection.close
     end
 

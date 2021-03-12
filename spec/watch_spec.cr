@@ -1,7 +1,7 @@
 require "./helper"
 
 module Etcd
-  describe Watch do
+  describe Watch, focus: true do
     it "watches a key" do
       ttl = 5_i64
 

@@ -5,7 +5,7 @@ require "../src/etcd/*"
 TEST_PREFIX = "test"
 
 Spec.before_suite do
-  Log.setup("*", level: Log::Severity::Debug)
+  Log.setup("*", level: Log::Severity::Trace)
 end
 
 Spec.before_each do

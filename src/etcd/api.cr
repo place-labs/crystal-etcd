@@ -82,6 +82,7 @@ class Etcd::Api
       {% end %}
 
       response = connection.{{method.id}}(path, headers, body)
+      pp! response
       raise Etcd::ApiError.from_response(response) unless response.success?
 
       response
@@ -98,6 +99,7 @@ class Etcd::Api
       path = "/#{api_version}#{path}"
       connection.{{method.id}}(path, headers, body) do |response|
         raise Etcd::ApiError.from_response(response) unless response.success?
+        pp! response
         yield response
       end
     end
@@ -127,6 +129,7 @@ class Etcd::Api
       }
       body = to_stringly(body) unless body.nil?
       {{method.id}}(path, headers, body.to_json) do |response|
+      pp! response
         yield response
       end
     end

@@ -5,7 +5,14 @@ module Etcd::Model
   struct WatchResponse < Base
     getter result : WatchResult = Etcd::Model::WatchResult.new
     getter error : WatchError?
+
     getter created : Bool = false
+
+    # Appears to be a genuine typo in the specification...
+    @[JSON::Field(key: "canceled")]
+    getter? cancelled : Bool = false
+
+    getter watch_id : String?
   end
 
   struct WatchError < Base
