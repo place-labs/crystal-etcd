@@ -126,9 +126,9 @@ module Etcd
       Model::TxnResponse.from_json(response.body).succeeded
     end
 
-    def move(key : String,  key_d : String, value, lease : Int64 = 0_i64) : Bool
+    def move(key : String,  key_destination : String, value, lease : Int64 = 0_i64) : Bool
       key_o = Base64.strict_encode(key)
-      key_d = Base64.strict_encode(key_d)
+      key_d = Base64.strict_encode(key_destination)
       value = Base64.strict_encode(value.to_s)
 
       post_body = {
