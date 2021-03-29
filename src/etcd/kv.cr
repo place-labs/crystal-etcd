@@ -126,6 +126,41 @@ module Etcd
       Model::TxnResponse.from_json(response.body).succeeded
     end
 
+    # Moves a value from `key` to `key_destination`, deleting the kv at `key` in the process.
+    def move(key : String,  key_destination : String, value, lease : Int64 = 0_i64) : Bool
+      key_o = Base64.strict_encode(key)
+      key_d = Base64.strict_encode(key_destination)
+      value = Base64.strict_encode(value.to_s)
+
+      post_body = {
+        :compare => [{
+          :key    => key_d,
+          :value  => Base64.strict_encode("0"),
+          :target => "VERSION",
+          :result => "EQUAL",
+        }],
+        :success => [{
+          :request_put => {
+            :key          => key_d,
+            :value        => value,
+            :lease        => lease,
+            :ignore_lease => false,
+          },
+        },
+        {
+          :request_delete_range => {
+            :key          => key_o,
+            :value        => value,
+            :lease        => lease,
+            :ignore_lease => false,
+          },
+        }],
+      }
+
+      response = client.api.post("/kv/txn", post_body)
+      Model::TxnResponse.from_json(response.body).succeeded
+    end
+
     # Sets a `key` if the given `previous_value` matches the existing value for `key`
     #
     # Wrapper over the etcd transaction API.
