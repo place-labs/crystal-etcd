@@ -50,5 +50,17 @@ module Etcd
 
       new_ttl.not_nil!.should be > 0
     end
+
+    it "handles nil on keep_alive" do
+      # Deserialise and handle incorrect json
+      Etcd::Model::KeepAlive.from_json(%({"result": {"TTL": "15"}})).result.should eq(15)
+      expect_raises(klass: Exception, message: "JSON key not found: TTL") {
+        Etcd::Model::KeepAlive.from_json(%({"result": {"error": "error"}}))
+      }
+
+      client = Etcd.from_env
+      new_ttl = client.lease.keep_alive 5_i64
+      new_ttl.should be_nil
+    end
   end
 end
