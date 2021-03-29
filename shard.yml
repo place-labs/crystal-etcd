@@ -1,10 +1,11 @@
 name: etcd
-version: 1.1.2
-crystal: ~> 0.35
-
+version: 1.2.0
+crystal: ">= 0.35"
+license: MIT
 authors:
   - Caspian Baska <caspian@place.tech>
   - Duke Nguyen <duke@place.technology>
+  - Luan Shengde <shdluan@163.com>
 
 dependencies:
   simple_retry:
@@ -17,5 +18,3 @@ development_dependencies:
   ameba:
     github: crystal-ameba/ameba
     version: ~> 0.12
-
-license: MIT

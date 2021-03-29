@@ -127,7 +127,7 @@ module Etcd
     end
 
     # Moves a value from `key` to `key_destination`, deleting the kv at `key` in the process.
-    def move(key : String,  key_destination : String, value, lease : Int64 = 0_i64) : Bool
+    def move(key : String, key_destination : String, value, lease : Int64 = 0_i64) : Bool
       key_o = Base64.strict_encode(key)
       key_d = Base64.strict_encode(key_destination)
       value = Base64.strict_encode(value.to_s)
