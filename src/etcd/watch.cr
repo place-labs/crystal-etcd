@@ -112,16 +112,9 @@ class Etcd::Watch
     # Pass events to captured block
     private def forward_events
       self.event_channel = Channel(Array(Model::WatchEvent)).new if self.event_channel.closed?
-      loop do
-        select
-        when event = self.event_channel.receive?
-          break if event.nil?
-          # Don't forward empty events
-          @block.call(event) unless event.empty?
-        when timeout 1.minute
-          # If no events received, trigger a client reconnect as connection may be silently dropped
-          api.connection.close
-        end
+      while event = self.event_channel.receive?
+        # Don't forward empty events
+        @block.call(event) unless event.empty?
       end
     end
 
@@ -150,7 +143,7 @@ class Etcd::Watch
       ) do
         if watching?
           begin
-            api.post("/watch", post_body) do |stream|
+            api.post("/watch", HTTP::Headers{"Connection" => "keep-alive"}, post_body) do |stream|
               consume_io(stream.body_io, json_chunk_tokenizer) do |chunk|
                 begin
                   response = Model::WatchResponse.from_json(chunk)
