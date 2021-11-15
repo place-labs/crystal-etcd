@@ -16,14 +16,10 @@ jobs:
           - 1.1.1
           - 1.2.2
         etcd:
-          - 3.3.15
           - 3.4.16
           - 3.5.1
         stable: [true]
         include:
-          - crystal: nightly
-            stable: false
-            etcd: 3.3.15
           - crystal: nightly
             stable: false
             etcd: 3.4.16
@@ -40,7 +36,7 @@ jobs:
         env:
           ALLOW_NONE_AUTHENTICATION: "yes"
     steps:
-      - uses: oprypin/install-crystal@v1
+      - uses: crystal-lang/install-crystal@v1.5.3
         with:
           crystal: ${{ matrix.crystal }}
       - uses: actions/checkout@v2
