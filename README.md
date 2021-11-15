@@ -1,6 +1,6 @@
 # crystal-etcd
 
-![CI](https://github.com/place-labs/models/workflows/CI/badge.svg)
+[![CI](https://github.com/place-labs/crystal-etcd/actions/workflows/ci.yml/badge.svg)](https://github.com/place-labs/crystal-etcd/actions/workflows/ci.yml)
 
 [etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's [gRPC-HTTP gateway](https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md).
 
