@@ -1,8 +1,9 @@
 require "tokenizer"
 require "simple_retry"
 
-require "./utils"
+require "./client"
 require "./model/watch"
+require "./utils"
 
 class Etcd::Watch
   include Utils
@@ -21,13 +22,17 @@ class Etcd::Watch
   # Watches keys by prefix, passing events to a supplied block.
   # Exposes a synchronous interface to the watch session via `Etcd::Watcher`
   #
-  # opts
-  #  filters         filters filter the events at server side before it sends back to the watcher.                                           [Watch::Filter]
-  #  start_revision  start_revision is an optional revision to watch from (inclusive). No start_revision is "now".                           Int64
-  #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
-  #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
-  #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
-  #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
+  # *Options*
+  #  - `filters`
+  #    filters filter the events at server side before it sends back to the watcher.
+  #  - `start_revision`
+  #    start_revision is an optional revision to watch from (inclusive). No start_revision is "now".
+  #  - `progress_notify`
+  #    progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
+  #    if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
+  #    a recent known revision. The etcd server may decide how often it will send notifications based on current load.
+  #  - `prev_kv`
+  #    If prev_kv is set, created watcher gets the previous Kv before the event happens.
   def watch_prefix(prefix, **opts, &block : Array(Model::WatchEvent) -> Void)
     encoded_prefix = Base64.strict_encode(prefix)
     opts = opts.merge({range_end: prefix_range_end(encoded_prefix), base64_keys: false})
@@ -37,14 +42,19 @@ class Etcd::Watch
   # Watch a key in ETCD, returns a `Etcd::Watcher`
   # Exposes a synchronous interface to the watch session via `Etcd::Watcher`
   #
-  # opts
-  #  range_end       range_end is the end of the range [key, range_end) to watch.
-  #  filters         filter the events at server side before it sends back to the watcher.                                           [Watch::Filter]
-  #  start_revision  start_revision is an optional revision to watch from (inclusive). No start_revision is "now".                           Int64
-  #  progress_notify progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
-  #                  if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
-  #                  a recent known revision. The etcd server may decide how often it will send notifications based on current load.         Bool
-  #  prev_kv         If prev_kv is set, created watcher gets the previous Kv before the event happens.                                       Bool
+  # *Options*
+  #  - `range_end`
+  #    range_end is the end of the range [key, range_end) to watch.
+  #  - `filters`
+  #    filter the events at server side before it sends back to the watcher.
+  #  - `start_revision`
+  #    start_revision is an optional revision to watch from (inclusive). No start_revision is "now".
+  #  - `progress_notify`
+  #    progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher
+  #    if there are no recent events. It is useful when clients wish to recover a disconnected watcher starting from
+  #    a recent known revision. The etcd server may decide how often it will send notifications based on current load.
+  #  - `prev_kv`
+  #     If prev_kv is set, created watcher gets the previous Kv before the event happens.
   def watch(
     key,
     range_end : String? = nil,
@@ -186,20 +196,24 @@ class Etcd::Watch
 
     # Partitions IO into JSON chunks (only objects!)
     protected def json_chunk_tokenizer
-      Tokenizer.new do |io|
-        length, unpaired = 0, 0
-        loop do
-          case io.read_char
-          when '{' then unpaired += 1
-          when '}' then unpaired -= 1
-          when Nil then break
-          end
+      {% if compare_versions(Crystal::VERSION, "1.1.1") > 0 %}
+        Tokenizer.new("\n")
+      {% else %}
+        Tokenizer.new do |io|
+          length, unpaired = 0, 0
+          loop do
+            case io.read_char
+            when '{' then unpaired += 1
+            when '}' then unpaired -= 1
+            when Nil then break
+            end
 
-          length += 1
-          break if unpaired.zero?
+            length += 1
+            break if unpaired.zero?
+          end
+          unpaired.zero? && length > 0 ? length : -1
         end
-        unpaired.zero? && length > 0 ? length : -1
-      end
+      {% end %}
     end
 
     # Pulls tokens off stream IO, and calls block with tokenized IO
@@ -208,9 +222,10 @@ class Etcd::Watch
     # block       Block that takes a string                         Block
     protected def consume_io(io, tokenizer, &block : String -> Void)
       raw_data = Bytes.new(4096)
-      while !io.closed?
+      until io.closed?
         bytes_read = io.read(raw_data)
-        break if bytes_read == 0 # IO was closed
+        break if bytes_read.zero? # IO was closed
+
         tokenizer.extract(raw_data[0, bytes_read]).each do |message|
           yield String.new(message)
         end

@@ -17,13 +17,12 @@ class Etcd::Api
 
   DEFAULT_HOST    = "localhost"
   DEFAULT_PORT    = 2379
-  DEFAULT_VERSION = "v3beta"
+  DEFAULT_VERSION = "v3"
 
   def initialize(
     url : URI,
-    api_version : String? = nil
+    @api_version : String = DEFAULT_VERSION
   )
-    @api_version = api_version || DEFAULT_VERSION
     @connection = HTTP::Client.new(url)
   end
 

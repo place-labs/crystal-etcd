@@ -1,17 +1,44 @@
 name: CI
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
+
 jobs:
+  crystal-style:
+    uses: PlaceOS/.github/.github/workflows/crystal-style.yml@main
+
   test:
+    name: "${{ !matrix.stable && '🚧 ' || ''}}crystal: ${{ matrix.crystal }}, etcd: ${{ matrix.etcd }}"
     strategy:
       fail-fast: false
+      matrix:
+        crystal:
+          - 1.1.1
+          - 1.2.2
+        etcd:
+          - 3.4.16
+          - 3.5.1
+        stable: [true]
+        include:
+          - crystal: nightly
+            stable: false
+            etcd: 3.4.16
+          - crystal: nightly
+            stable: false
+            etcd: 3.5.1
     runs-on: ubuntu-latest
+    services:
+      etcd:
+        image: bitnami/etcd:${{ matrix.etcd }}
+        ports:
+          - 2379:2379
+          - 2380:2380
+        env:
+          ALLOW_NONE_AUTHENTICATION: "yes"
     steps:
-      - uses: oprypin/install-crystal@v1
+      - uses: crystal-lang/install-crystal@v1.5.3
         with:
-          crystal: latest
+          crystal: ${{ matrix.crystal }}
       - uses: actions/checkout@v2
-      - run: docker run -p "2379:2379" -p "2380:2380" -e ALLOW_NONE_AUTHENTICATION=yes -d bitnami/etcd:3
       - run: shards install
-      - run: crystal spec
-      - run: crystal tool format --check
-      - run: ./bin/ameba
+      - run: crystal spec --order random

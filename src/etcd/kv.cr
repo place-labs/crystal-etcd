@@ -139,22 +139,24 @@ module Etcd
           :target => "VERSION",
           :result => "EQUAL",
         }],
-        :success => [{
-          :request_put => {
-            :key          => key_d,
-            :value        => value,
-            :lease        => lease,
-            :ignore_lease => false,
+        :success => [
+          {
+            :request_put => {
+              :key          => key_d,
+              :value        => value,
+              :lease        => lease,
+              :ignore_lease => false,
+            },
           },
-        },
-        {
-          :request_delete_range => {
-            :key          => key_o,
-            :value        => value,
-            :lease        => lease,
-            :ignore_lease => false,
+          {
+            :request_delete_range => {
+              :key          => key_o,
+              :value        => value,
+              :lease        => lease,
+              :ignore_lease => false,
+            },
           },
-        }],
+        ],
       }
 
       response = client.api.post("/kv/txn", post_body)

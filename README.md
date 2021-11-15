@@ -4,17 +4,17 @@
 
 [etcd](https://www.etcd.io/) client for [crystal lang](https://crystal-lang.org/) implemented as a thin wrapper over etcd's [gRPC-HTTP gateway](https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md).
 
-This client was developed against etcd v3.3, to use a higher version, set `api_version` arg to an appropriate version prefix when instantiating the client.
+The minimum supported etcd version is `3.4`.
 
 ## Installation
 
 1. Add the dependency to your `shard.yml`:
 
-   ```yaml
-   dependencies:
-     etcd:
-       github: place-labs/crystal-etcd
-   ```
+```yaml
+dependencies:
+  etcd:
+    github: place-labs/crystal-etcd
+```
 
 2. Run `shards install`
 
