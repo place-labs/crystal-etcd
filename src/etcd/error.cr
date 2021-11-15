@@ -6,8 +6,8 @@ module Etcd
   end
 
   class ApiError < Error
-    def initialize(@status_code : Int32, message = "")
-      super(message)
+    def initialize(@status_code : Int32, message = "", cause = nil)
+      super(message, cause: cause)
     end
 
     def self.from_response(response)
