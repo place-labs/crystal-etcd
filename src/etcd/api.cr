@@ -21,9 +21,8 @@ class Etcd::Api
 
   def initialize(
     url : URI,
-    api_version : String? = nil
+    @api_version : String = DEFAULT_VERSION
   )
-    @api_version = api_version || DEFAULT_VERSION
     @connection = HTTP::Client.new(url)
   end
 
