@@ -17,7 +17,7 @@ class Etcd::Api
 
   DEFAULT_HOST    = "localhost"
   DEFAULT_PORT    = 2379
-  DEFAULT_VERSION = "v3beta"
+  DEFAULT_VERSION = "v3"
 
   def initialize(
     url : URI,
