@@ -71,7 +71,7 @@ class Etcd::Watch
 
     Watcher.new(
       key: key,
-      create_api: ->{ client.spawn_api },
+      create_api: ->@client.spawn_api,
       range_end: range_end,
       filters: filters,
       start_revision: start_revision,

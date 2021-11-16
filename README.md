@@ -34,43 +34,44 @@ client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/se
 
 ## TODO
 
-- Auth.
+- Specs (auth, cluster, maintenance, kv.compaction, kv.txn)
 - Multi-node.
+- Use enum instead of String
 
 ### Auth
 
-- [ ] authenticate
-- [ ] disable
-- [ ] enable
-- [ ] role/add
-- [ ] role/delete
-- [ ] role/get
-- [ ] role/grant
-- [ ] role/list
-- [ ] role/revoke
-- [ ] user/add
-- [ ] user/changepw
-- [ ] user/delete
-- [ ] user/get
-- [ ] user/grant
-- [ ] user/list
-- [ ] user/revoke
+- [x] authenticate
+- [x] disable
+- [x] enable
+- [x] role/add
+- [x] role/delete
+- [x] role/get
+- [x] role/grant
+- [x] role/list
+- [x] role/revoke
+- [x] user/add
+- [x] user/changepw
+- [x] user/delete
+- [x] user/get
+- [x] user/grant
+- [x] user/list
+- [x] user/revoke
 
 ### Cluster
 
-- [ ] member/add
-- [ ] member/list
-- [ ] member/promote
-- [ ] member/remove
-- [ ] member/update
+- [x] member/add
+- [x] member/list
+- [x] member/promote
+- [x] member/remove
+- [x] member/update
 
 ### Kv
 
 - [x] put
 - [x] range
 - [x] deleterange
-- [ ] compaction
-- [ ] txn
+- [x] compaction
+- [x] txn
 
 ### Lease
 
@@ -82,12 +83,12 @@ client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/se
 
 ### Maintenance
 
-- [ ] alarm
-- [ ] defragment
-- [ ] hash
-- [ ] snapshot
+- [x] alarm
+- [x] defragment
+- [x] hash
+- [x] snapshot
 - [x] status
-- [ ] transfer-leadership
+- [x] transfer-leadership
 
 ### Watch
 
@@ -108,3 +109,4 @@ client.range("/service/hello").kvs.try(&.first?) #=> #<Etcd::Model::KV @key="/se
 ## Contributors
 
 - [Caspian Baska](https://github.com/caspiano) - creator and maintainer
+- [Duke Nguyen](https://github.com/dukeraphaelng) - maintainer
