@@ -26,19 +26,12 @@ module Etcd::Model
     getter id : Int64
     @[JSON::Field(key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
     getter ttl : Int64
-    getter error : String?
   end
 
   # Returns error
   struct KeepAlive < Base
     getter error : Error?
-    getter result : KeepAliveResult?
-  end
-
-  struct KeepAliveResult < WithHeader
-    @[JSON::Field(key: "ID", converter: Etcd::Model::StringTypeConverter(Int64))]
-    getter id : Int64
-    @[JSON::Field(key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
-    getter ttl : Int64
+    @[JSON::Field(root: "result", key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
+    getter result : Int64?
   end
 end

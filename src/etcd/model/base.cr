@@ -13,8 +13,15 @@ module Etcd::Model
     include JSON::Serializable
   end
 
-  abstract struct WithHeader < Base
+  private abstract struct Response < Base
+    getter error : Error?
+  end
+
+  abstract struct WithHeader < Response
     getter header : Header
+  end
+
+  struct EmptyResponse < Response
   end
 
   struct Error < Base
