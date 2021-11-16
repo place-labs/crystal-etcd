@@ -29,9 +29,12 @@ module Etcd::Model
   end
 
   # Returns error
-  struct KeepAlive < Base
-    getter error : Error?
-    @[JSON::Field(root: "result", key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
-    getter result : Int64?
+  struct KeepAlive < Response
+    getter result : Result?
+
+    struct Result < Base
+      @[JSON::Field(key: "TTL", converter: Etcd::Model::StringTypeConverter(Int64))]
+      getter ttl : Int64?
+    end
   end
 end

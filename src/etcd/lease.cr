@@ -65,7 +65,7 @@ module Etcd
         "/lease/keepalive",
         {ID: id},
         Model::KeepAlive
-      ).result
+      ).result.try(&.ttl)
     end
   end
 end
