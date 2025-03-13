@@ -89,7 +89,7 @@ class Etcd::Auth
 
     # why is this API call totally different from the grant?!
     options = {
-      :role => role,
+      :role      => role,
       :key       => key,
       :range_end => range_end,
     }

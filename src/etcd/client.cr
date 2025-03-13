@@ -7,8 +7,9 @@ require "./watch"
 class Etcd::Client
   getter api : Etcd::Api
   getter auth : Etcd::Auth
-  getter username : String? = nil
-  getter password : String? = nil
+  getter username : String?
+  getter password : String?
+  getter tls_context : HTTP::Client::TLSContext
   private getter create_api : Proc(Etcd::Api)
 
   delegate close, to: api.connection
@@ -18,8 +19,9 @@ class Etcd::Client
     api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
+    @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = ->{ Etcd::Api.new(uri: url) }
+    @create_api = -> { Etcd::Api.new(url: url, tls_context: tls_context) }
     @api = @create_api.call
     @auth = Etcd::Auth.new(@api)
 
@@ -32,8 +34,9 @@ class Etcd::Client
     api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
+    @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = ->{ Etcd::Api.new(host: host, port: port) }
+    @create_api = -> { Etcd::Api.new(host: host, port: port, tls_context: tls_context) }
     @api = @create_api.call
     @auth = Etcd::Auth.new(@api)
 

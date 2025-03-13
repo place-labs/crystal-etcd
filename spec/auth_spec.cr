@@ -10,9 +10,14 @@ require "./helper"
 # these tests! You have to have a root account set up before running them, btw, since a root
 # account is required to enable authentication.
 
+# Also, for the TLS test to pass, you need to make sure you're serving etcd over https with
+# some sort of valid cert (e.g turn on auto-tls):
+# ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379,https://0.0.0.0:2379
+# ETCD_AUTO_TLS=true
+
 module Etcd
   describe Auth do
-    # this also tests authentication (it tests way too much stuff but it's all a chain of operations so...)
+    # this also tests authentication (it tests way too much stuff but it is all a chain of operations so...)
     describe "RBAC" do
       it "can be enabled and disabled" do
         client = Etcd.from_env
@@ -82,6 +87,17 @@ module Etcd
         client.auth.role_grant_prefix(TEST_ROLE, TEST_PREFIX)
         client.auth.role_revoke_prefix(TEST_ROLE, TEST_PREFIX)
         client.auth.role_get(TEST_ROLE).empty?.should be_true
+      end
+    end
+
+    describe "TLS" do
+      it "can be used" do
+        tls_context = OpenSSL::SSL::Context::Client.new
+        tls_context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+
+        client = Etcd::Client.new(url: URI.parse("https://localhost:2379"), tls_context: tls_context)
+        response = client.kv.put("#{TEST_PREFIX}/hello", "world")
+        response.should be_a Model::Put
       end
     end
   end

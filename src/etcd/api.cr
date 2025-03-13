@@ -14,6 +14,7 @@ class Etcd::Api
   getter host : String = DEFAULT_HOST
   getter port : Int32 = DEFAULT_PORT
   getter url : URI?
+  getter tls_context : HTTP::Client::TLSContext?
 
   DEFAULT_HOST    = "localhost"
   DEFAULT_PORT    = 2379
@@ -21,32 +22,36 @@ class Etcd::Api
 
   def initialize(
     url : URI,
-    @api_version : String = DEFAULT_VERSION
+    @api_version : String = DEFAULT_VERSION,
+    @secure = false,
+    @tls_context : HTTP::Client::TLSContext? = nil,
   )
-    @connection = HTTP::Client.new(url)
+    @connection = HTTP::Client.new(url, tls: tls_context)
   end
 
   def initialize(
     host : String = "localhost",
     port : Int32? = nil,
-    api_version : String? = nil
+    api_version : String? = nil,
+    @secure = false,
+    @tls_context : HTTP::Client::TLSContext? = nil,
   )
     @api_version = api_version || DEFAULT_VERSION
     port ||= DEFAULT_PORT
-    @connection = HTTP::Client.new(host, port)
+    @connection = HTTP::Client.new(host, port, tls: tls_context)
   end
 
   # TODO: Add connection pooling.
   # Currently, there's contention on the http connection
   # Better to lease connections from a pool, and use the sclient object
   # This way, we can reuse the same infra around the connection
-  def spawn_connection
-    if url
-      HTTP::Client.new(url.as(URI))
-    else
-      HTTP::Client.new(host, port)
-    end
-  end
+  # def spawn_connection
+  #   if url
+  #     HTTP::Client.new(url.as(URI))
+  #   else
+  #     HTTP::Client.new(host, port)
+  #   end
+  # end
 
   # Converts literals to string type
   protected def to_stringly(value)
