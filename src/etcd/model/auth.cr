@@ -27,6 +27,6 @@ module Etcd::Model
   end
 
   struct Users < WithHeader
-    getter user : Array(String)
+    getter users : Array(String)
   end
 end

@@ -9,11 +9,11 @@ class Etcd::Api
 
   # API version
   property api_version : String
+  property token : String?
 
   getter host : String = DEFAULT_HOST
   getter port : Int32 = DEFAULT_PORT
   getter url : URI?
-  getter token : String?
 
   DEFAULT_HOST    = "localhost"
   DEFAULT_PORT    = 2379
@@ -79,6 +79,12 @@ class Etcd::Api
         # Client expects non-empty JSON POST body
         body = "{}" if body.nil?
       {% end %}
+
+      if token = @token
+        if headers = headers || HTTP::Headers.new
+          headers["Authorization"] = token
+        end
+      end
 
       response = connection.{{method.id}}(path, headers, body)
       raise Etcd::ApiError.from_response(response) unless response.success?
