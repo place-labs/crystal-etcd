@@ -6,7 +6,7 @@ module Etcd::Model
   end
 
   struct Permissions < WithHeader
-    getter perm : Array(Permission)
+    getter perm = [] of Permission
   end
 
   enum PermissionType
@@ -15,11 +15,11 @@ module Etcd::Model
     READWRITE
   end
 
-  struct Permission < WithHeader
+  struct Permission < Base
     getter key : String # Bytes
     @[JSON::Field(key: "permType")]
-    getter perm_type : PermissionType
-    getter range_end : String # Bytes
+    getter perm_type : PermissionType = PermissionType::READ
+    getter range_end : String? = nil # Bytes
   end
 
   struct Roles < WithHeader

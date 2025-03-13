@@ -12,29 +12,29 @@ require "./helper"
 
 module Etcd
   describe Auth do
-    # describe "RBAC" do
     # this also tests authentication (it tests way too much stuff but it's all a chain of operations so...)
-    #   it "can be enabled and disabled" do
-    #     client = Etcd.from_env
-    #     client.auth.user_add(TEST_USER, TEST_PASSWORD)
-    #     client.auth.user_grant(ROOT_ROLE, TEST_USER)
+    describe "RBAC" do
+      it "can be enabled and disabled" do
+        client = Etcd.from_env
+        client.auth.user_add(TEST_USER, TEST_PASSWORD)
+        client.auth.user_grant(ROOT_ROLE, TEST_USER)
 
-    #     # enable RBAC and confirm we can't do stuff anymore
-    #     client.auth.enable
-    #     expect_raises(Etcd::ApiError) do
-    #       response = client.kv.put("#{TEST_PREFIX}/hello", "world")
-    #     end
+        # enable RBAC and confirm we can't do stuff anymore
+        client.auth.enable
+        expect_raises(Etcd::ApiError) do
+          response = client.kv.put("#{TEST_PREFIX}/hello", "world")
+        end
 
-    #     # disable RBAC and confirm we can do stuff again
-    #     client.set_username_password(TEST_USER, TEST_PASSWORD)
-    #     client.auth.disable
+        # disable RBAC and confirm we can do stuff again
+        client.set_username_password(TEST_USER, TEST_PASSWORD)
+        client.auth.disable
 
-    #     # clear credentials and make sure we can still do stuff
-    #     client.set_username_password
-    #     response = client.kv.put("#{TEST_PREFIX}/hello", "world")
-    #     response.should be_a Model::Put
-    #   end
-    # end
+        # clear credentials and make sure we can still do stuff
+        client.set_username_password
+        response = client.kv.put("#{TEST_PREFIX}/hello", "world")
+        response.should be_a Model::Put
+      end
+    end
 
     describe "roles" do
       it "can be listed" do
@@ -75,10 +75,13 @@ module Etcd
         client = Etcd.from_env
         client.auth.role_add(TEST_ROLE)
 
+        client.auth.role_grant(TEST_ROLE, TEST_PREFIX)
         client.auth.role_revoke(TEST_ROLE, TEST_PREFIX)
-        client.auth.role_grant_prefix(TEST_ROLE, TEST_PREFIX)
+        client.auth.role_get(TEST_ROLE).empty?.should be_true
 
-        client.auth.role_grant_prefix(TEST_ROLE, TEST_PREFIX, Model::PermissionType::WRITE)
+        client.auth.role_grant_prefix(TEST_ROLE, TEST_PREFIX)
+        client.auth.role_revoke_prefix(TEST_ROLE, TEST_PREFIX)
+        client.auth.role_get(TEST_ROLE).empty?.should be_true
       end
     end
   end

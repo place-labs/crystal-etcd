@@ -87,18 +87,17 @@ class Etcd::Auth
       range_end = range_end.try &->Base64.strict_encode(String)
     end
 
+    # why is this API call totally different from the grant?!
     options = {
-      :name => role,
-      :perm => {
-        :key       => key,
-        :range_end => range_end,
-      },
+      :role => role,
+      :key       => key,
+      :range_end => range_end,
     }
 
     api.post("/auth/role/revoke", options).success?
   end
 
-  def role_revoke_prefix(prefix : String, role : String)
+  def role_revoke_prefix(role : String, prefix : String)
     encoded_prefix = Base64.strict_encode(prefix)
     encoded_range_end = prefix_range_end encoded_prefix
     role_revoke(role, encoded_prefix, encoded_range_end, base64_keys: false)

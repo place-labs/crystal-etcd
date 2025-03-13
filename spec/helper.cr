@@ -3,8 +3,8 @@ require "../src/etcd"
 require "../src/etcd/*"
 
 TEST_PREFIX = "test"
-TEST_ROLE = "#{TEST_PREFIX}_role"
-TEST_USER = "#{TEST_PREFIX}_user"
+TEST_ROLE = "#{TEST_PREFIX}role"
+TEST_USER = "#{TEST_PREFIX}user"
 TEST_PASSWORD = "#{TEST_PREFIX}_password"
 ROOT_ROLE = "root"  # special unicorn root etcd role
 
@@ -21,8 +21,6 @@ Spec.before_each do
     client.auth.user_list.select{|u| u.starts_with?(TEST_PREFIX) }.each do |test_user|
       client.auth.user_delete(test_user)
     end
-
-    puts client.auth.role_list.inspect
 
     client.auth.role_list.select{|r| r.starts_with?(TEST_PREFIX) }.each do |test_role|
       client.auth.role_delete(test_role)
