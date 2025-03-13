@@ -8,6 +8,8 @@ TEST_USER     = "#{TEST_PREFIX}user"
 TEST_PASSWORD = "#{TEST_PREFIX}_password"
 ROOT_ROLE     = "root" # special unicorn root etcd role
 
+NONEXISTENT_ENDPOINT = "http://localhost:9999"
+
 Spec.before_suite do
   Log.setup("*", level: Log::Severity::Debug)
 end

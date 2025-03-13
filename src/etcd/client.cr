@@ -5,8 +5,8 @@ require "./maintenance"
 require "./watch"
 
 class Etcd::Client
-  getter api : Etcd::Api
-  getter auth : Etcd::Auth
+  getter! api : Etcd::Api
+  getter! auth : Etcd::Auth
   getter username : String?
   getter password : String?
   getter tls_context : HTTP::Client::TLSContext
@@ -16,31 +16,36 @@ class Etcd::Client
 
   def initialize(
     url : URI,
-    api_version : String? = nil,
+    @api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
     @create_api = -> { Etcd::Api.new(url: url, tls_context: tls_context) }
-    @api = @create_api.call
-    @auth = Etcd::Auth.new(@api)
+    after_initialize
+  end
 
-    update_auth_token
+  def initialize(
+    endpoints : Array(URI),
+    @api_version : String? = nil,
+    @username : String? = nil,
+    @password : String? = nil,
+    @tls_context : HTTP::Client::TLSContext = nil,
+  )
+    @create_api = -> { Etcd::Api.new(endpoints: endpoints, tls_context: tls_context) }
+    after_initialize
   end
 
   def initialize(
     host : String = "localhost",
     port : Int32? = nil,
-    api_version : String? = nil,
+    @api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
     @create_api = -> { Etcd::Api.new(host: host, port: port, tls_context: tls_context) }
-    @api = @create_api.call
-    @auth = Etcd::Auth.new(@api)
-
-    update_auth_token
+    after_initialize
   end
 
   def api_version
@@ -60,9 +65,9 @@ class Etcd::Client
 
   def update_auth_token
     if (username = @username) && (password = @password)
-      @api.token = @auth.authenticate(username, password)
+      api.token = auth.authenticate(username, password)
     else
-      @api.token = nil
+      api.token = nil
     end
   end
 
@@ -72,4 +77,11 @@ class Etcd::Client
       @{{component.id}} ||= {{component.id.capitalize}}.new(self)
     end
   {% end %}
+
+  private def after_initialize
+    @api = @create_api.call
+    @auth = Etcd::Auth.new(api)
+
+    update_auth_token
+  end
 end
