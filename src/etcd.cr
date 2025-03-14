@@ -14,15 +14,17 @@ module Etcd
       host: ENV["ETCD_HOST"]? || "localhost",
       port: ENV["ETCD_PORT"]?.try(&.to_i) || 2379,
       api_version: api_version,
+      username: ENV["ETCD_USERNAME"]?,
+      password: ENV["ETCD_PASSWORD"]?,
     )
   end
 
-  def client(url : URI, api_version : String? = nil)
-    Etcd::Client.new(url: url, api_version: api_version)
+  def client(url : URI, api_version : String? = nil, username : String? = nil, password : String? = nil)
+    Etcd::Client.new(url: url, api_version: api_version, username: username, password: password)
   end
 
-  def client(host : String, port : Int32? = nil, api_version : String? = nil)
-    Etcd::Client.new(host: host, port: port, api_version: api_version)
+  def client(host : String, port : Int32? = nil, api_version : String? = nil, username : String? = nil, password : String? = nil)
+    Etcd::Client.new(host: host, port: port, api_version: api_version, username: username, password: password)
   end
 
   def api(url : URI, api_version : String? = nil)

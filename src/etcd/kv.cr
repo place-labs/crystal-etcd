@@ -26,7 +26,7 @@ module Etcd
       lease : Int64 = 0_i64,
       prev_kv : Bool? = nil,
       ignore_value : Bool? = nil,
-      ignore_lease : Bool? = nil
+      ignore_lease : Bool? = nil,
     )
       options = {
         :key          => Base64.strict_encode(key),

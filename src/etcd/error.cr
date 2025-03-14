@@ -17,4 +17,10 @@ module Etcd
 
   class WatchError < Error
   end
+
+  class ConnectionError < Error
+    def initialize(@url : URI? = nil, cause = nil)
+      super("Could not connect to etcd endpoint: #{@url.try(&.to_s) || "Unknown URL"}", cause: cause)
+    end
+  end
 end
