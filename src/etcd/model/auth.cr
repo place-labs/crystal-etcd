@@ -23,10 +23,10 @@ module Etcd::Model
   end
 
   struct Roles < WithHeader
-    getter roles : Array(String)
+    getter roles = [] of String
   end
 
   struct Users < WithHeader
-    getter users : Array(String)
+    getter users = [] of String
   end
 end
