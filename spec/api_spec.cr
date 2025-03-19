@@ -43,7 +43,7 @@ module Etcd
       client.kv.put("#{TEST_PREFIX}_endpoint_test", "after_failure")
     end
 
-    it "should reset the retry count a successful request is made" do
+    it "should reset the retry count when a successful request is made" do
       client = Etcd::Client.new(
         endpoints: [
           URI.parse(NONEXISTENT_ENDPOINT),
