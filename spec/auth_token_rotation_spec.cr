@@ -19,7 +19,7 @@ require "./helper"
 module Etcd
   describe Client do
     describe "auth token" do
-      it "can be rotated" do
+      it "can be rotated", tags: "localonly" do
         client = Etcd.from_env
         client.auth.user_add(TEST_USER, TEST_PASSWORD)
         client.auth.user_grant(ROOT_ROLE, TEST_USER)
