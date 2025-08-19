@@ -20,11 +20,11 @@ Spec.before_each do
 
     client.kv.delete_prefix TEST_PREFIX
 
-    client.auth.user_list.select { |u| u.starts_with?(TEST_PREFIX) }.each do |test_user|
+    client.auth.user_list.select(&.starts_with?(TEST_PREFIX)).each do |test_user|
       client.auth.user_delete(test_user)
     end
 
-    client.auth.role_list.select { |r| r.starts_with?(TEST_PREFIX) }.each do |test_role|
+    client.auth.role_list.select(&.starts_with?(TEST_PREFIX)).each do |test_role|
       client.auth.role_delete(test_role)
     end
   rescue

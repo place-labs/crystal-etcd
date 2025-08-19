@@ -27,7 +27,7 @@ module Etcd
         # enable RBAC and confirm we can't do stuff anymore
         client.auth.enable
         expect_raises(Etcd::ApiError) do
-          response = client.kv.put("#{TEST_PREFIX}/hello", "world")
+          client.kv.put("#{TEST_PREFIX}/hello", "world")
         end
 
         # disable RBAC and confirm we can do stuff again

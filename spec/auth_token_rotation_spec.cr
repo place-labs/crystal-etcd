@@ -30,7 +30,7 @@ module Etcd
 
         value = "world"
 
-        response = client.kv.put("#{TEST_PREFIX}/hello", value)
+        client.kv.put("#{TEST_PREFIX}/hello", value)
 
         sleep Time::Span.new(seconds: 3) # wait for the token to expire (twice as long as ETCD_AUTH_TOKEN_TTL to be safe)
 
