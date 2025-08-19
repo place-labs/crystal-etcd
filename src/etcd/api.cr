@@ -11,6 +11,8 @@ class Etcd::Api
   getter port : Int32 = DEFAULT_PORT
   getter endpoints = [] of URI
   getter tls_context : HTTP::Client::TLSContext?
+  getter username : String?
+  getter password : String?
 
   # keeps track of the number of times we've tried to connect since the last successful request
   # (will be used to keep trying if we have multiple endpoints)
@@ -27,17 +29,23 @@ class Etcd::Api
     url : URI,
     @api_version : String = DEFAULT_VERSION,
     @secure = false,
+    @username : String? = nil,
+    @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext? = nil,
   )
-    initialize([url], api_version, @secure, @tls_context)
+    initialize([url], api_version, @secure, @username, @password, @tls_context)
   end
 
   def initialize(
     @endpoints : Array(URI),
     @api_version : String = DEFAULT_VERSION,
     @secure = false,
+    @username : String? = nil,
+    @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext? = nil,
   )
+
+    update_auth_token
   end
 
   def initialize(
@@ -45,6 +53,8 @@ class Etcd::Api
     port : Int32? = nil,
     @api_version : String = DEFAULT_VERSION,
     @secure = false,
+    @username : String? = nil,
+    @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext? = nil,
   )
     url = URI.new(
@@ -52,7 +62,7 @@ class Etcd::Api
       host: host,
       port: port,
     )
-    initialize(url, api_version, @secure, @tls_context)
+    initialize(url, api_version, @secure, @username, @password, @tls_context)
   end
 
   # TODO: Add connection pooling.
@@ -97,6 +107,27 @@ class Etcd::Api
   # current url (may change on failure)
   def url
     @endpoints.first
+  end
+
+  # special setter since we need to update the token
+  def set_username_password(username : String? = nil, password : String? = nil)
+    @username = username
+    @password = password
+    update_auth_token
+  end
+
+  # auth/authenticate
+  def authenticate(name : String, password : String)
+    response = post("/auth/authenticate", {name: name, password: password}).body
+    Model::Token.from_json(response).token
+  end
+
+  def update_auth_token
+    if (username = @username) && (password = @password)
+      @token = authenticate(username, password)
+    else
+      @token = nil
+    end
   end
 
   protected def connection
@@ -149,7 +180,14 @@ class Etcd::Api
         end
       end
 
-      raise Etcd::ApiError.from_response(response) unless response.success?
+      # if we may be looking at a rotated token, try one more time
+      if @token && response.status == HTTP::Status::UNAUTHORIZED
+        Log.debug { "Attempting to re-authenticate after HTTP 401" }
+        update_auth_token
+        return {{method.id}}(path, headers, body)
+      else
+        raise Etcd::ApiError.from_response(response) unless response.success?
+      end
 
       @retries_performed = 0
 
