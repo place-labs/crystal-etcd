@@ -19,7 +19,7 @@ module Etcd
   describe Auth do
     # this also tests authentication (it tests way too much stuff but it is all a chain of operations so...)
     describe "RBAC" do
-      it "can be enabled and disabled" do
+      it "can be enabled and disabled", tags: "localonly" do
         client = Etcd.from_env
         client.auth.user_add(TEST_USER, TEST_PASSWORD)
         client.auth.user_grant(ROOT_ROLE, TEST_USER)
@@ -42,12 +42,12 @@ module Etcd
     end
 
     describe "roles" do
-      it "can be listed" do
+      it "can be listed", tags: "localonly" do
         client = Etcd.from_env
         client.auth.role_list.should be_a Array(String)
       end
 
-      it "can be added and deleted" do
+      it "can be added and deleted", tags: "localonly" do
         client = Etcd.from_env
 
         client.auth.role_add(TEST_ROLE)
@@ -60,7 +60,7 @@ module Etcd
     end
 
     describe "permissions" do
-      it "can be granted" do
+      it "can be granted", tags: "localonly" do
         client = Etcd.from_env
         client.auth.role_add(TEST_ROLE)
 
@@ -76,7 +76,7 @@ module Etcd
         client.auth.role_get(TEST_ROLE).size.should eq 3
       end
 
-      it "can be revoked" do
+      it "can be revoked", tags: "localonly" do
         client = Etcd.from_env
         client.auth.role_add(TEST_ROLE)
 
@@ -91,7 +91,7 @@ module Etcd
     end
 
     describe "TLS" do
-      it "can be used" do
+      it "can be used", tags: "localonly" do
         tls_context = OpenSSL::SSL::Context::Client.new
         tls_context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
 

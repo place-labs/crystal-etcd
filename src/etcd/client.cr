@@ -13,6 +13,7 @@ class Etcd::Client
   private getter create_api : Proc(Etcd::Api)
 
   delegate close, to: api.connection
+  delegate set_username_password, to: api
 
   def initialize(
     url : URI,
@@ -32,7 +33,7 @@ class Etcd::Client
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(endpoints: endpoints, tls_context: tls_context) }
+    @create_api = -> { Etcd::Api.new(endpoints: endpoints, username: @username, password: @password, tls_context: tls_context) }
     after_initialize
   end
 
@@ -44,7 +45,7 @@ class Etcd::Client
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(host: host, port: port, tls_context: tls_context) }
+    @create_api = -> { Etcd::Api.new(host: host, port: port, username: @username, password: @password, tls_context: tls_context) }
     after_initialize
   end
 
@@ -54,21 +55,6 @@ class Etcd::Client
 
   def spawn_api : Etcd::Api
     create_api.call
-  end
-
-  # special setter since we need to update the token
-  def set_username_password(username : String? = nil, password : String? = nil)
-    @username = username
-    @password = password
-    update_auth_token
-  end
-
-  def update_auth_token
-    if (username = @username) && (password = @password)
-      api.token = auth.authenticate(username, password)
-    else
-      api.token = nil
-    end
   end
 
   {% for component in %w(kv lease maintenance watch) %}
@@ -81,7 +67,5 @@ class Etcd::Client
   private def after_initialize
     @api = @create_api.call
     @auth = Etcd::Auth.new(api)
-
-    update_auth_token
   end
 end

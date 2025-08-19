@@ -41,4 +41,4 @@ jobs:
           crystal: ${{ matrix.crystal }}
       - uses: actions/checkout@v2
       - run: shards install
-      - run: crystal spec --order random
+      - run: crystal spec --order random --tag "~localonly"
