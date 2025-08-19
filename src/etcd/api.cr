@@ -44,7 +44,6 @@ class Etcd::Api
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext? = nil,
   )
-
     update_auth_token
   end
 

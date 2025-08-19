@@ -13,8 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         crystal:
-          - 1.1.1
-          - 1.2.2
+          - 1.10.1
+          - 1.15.1
         etcd:
           - 3.4.16
           - 3.5.1
