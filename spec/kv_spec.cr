@@ -53,6 +53,7 @@ module Etcd
     it "sets a value" do
       client = Etcd.from_env
       response = client.kv.put("#{TEST_PREFIX}/hello", "world")
+      response = client.kv.put("#{TEST_PREFIX}/hello", "world")
 
       response.should be_a Model::Put
     end

@@ -9,14 +9,6 @@ class Etcd::Auth
   def initialize(@api = Etcd::Api.new)
   end
 
-  # auth/authenticate
-  def authenticate(name : String, password : String)
-    validate!(name)
-
-    response = api.post("/auth/authenticate", {name: name, password: password}).body
-    Model::Token.from_json(response).token
-  end
-
   # auth/disable
   def disable
     api.post("/auth/disable").success?
