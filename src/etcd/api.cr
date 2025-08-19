@@ -202,6 +202,13 @@ class Etcd::Api
     # unsuccessful.
     def {{method.id}}(path, headers : HTTP::Headers? = nil, body : HTTP::Client::BodyType = nil)
       path = "/#{api_version}#{path}"
+
+      if token = @token
+        if headers = headers || HTTP::Headers.new
+          headers["Authorization"] = token
+        end
+      end
+
       connection.{{method.id}}(path, headers, body) do |response|
         raise Etcd::ApiError.from_response(response) unless response.success?
         yield response
