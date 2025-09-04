@@ -22,10 +22,12 @@ class Etcd::Client
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(
-      api_version: api_version,
-      url: url,
-      tls_context: tls_context)
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        url: url,
+        tls_context: tls_context
+      )
     }
     after_initialize
   end
@@ -37,12 +39,14 @@ class Etcd::Client
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(
-      api_version: api_version,
-      endpoints: endpoints,
-      username: @username,
-      password: @password,
-      tls_context: tls_context)
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        endpoints: endpoints,
+        username: @username,
+        password: @password,
+        tls_context: tls_context
+      )
     }
     after_initialize
   end
@@ -55,12 +59,15 @@ class Etcd::Client
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(
-      api_version: api_version,
-      host: host,
-      port: port,
-      username: @username,
-      password: @password, tls_context: tls_context)
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        host: host,
+        port: port,
+        username: @username,
+        password: @password,
+        tls_context: tls_context
+      )
     }
     after_initialize
   end
