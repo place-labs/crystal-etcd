@@ -76,5 +76,18 @@ module Etcd
         client.kv.get("#{TEST_PREFIX}_endpoint_test")
       end
     end
+
+    it "should set the version properly" do
+      version = "v3beta"
+      client = Etcd::Client.new(
+        api_version: version,
+        endpoints: [
+          URI.parse(NONEXISTENT_ENDPOINT),
+          URI.parse("http://localhost:2379"),
+        ]
+      )
+
+      client.api.api_version.should eq version
+    end
   end
 end

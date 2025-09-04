@@ -17,35 +17,58 @@ class Etcd::Client
 
   def initialize(
     url : URI,
-    @api_version : String? = nil,
+    api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(url: url, tls_context: tls_context) }
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        url: url,
+        tls_context: tls_context
+      )
+    }
     after_initialize
   end
 
   def initialize(
     endpoints : Array(URI),
-    @api_version : String? = nil,
+    api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(endpoints: endpoints, username: @username, password: @password, tls_context: tls_context) }
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        endpoints: endpoints,
+        username: @username,
+        password: @password,
+        tls_context: tls_context
+      )
+    }
     after_initialize
   end
 
   def initialize(
     host : String = "localhost",
     port : Int32? = nil,
-    @api_version : String? = nil,
+    api_version : String? = nil,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext = nil,
   )
-    @create_api = -> { Etcd::Api.new(host: host, port: port, username: @username, password: @password, tls_context: tls_context) }
+    @create_api = -> {
+      Etcd::Api.new(
+        api_version: api_version,
+        host: host,
+        port: port,
+        username: @username,
+        password: @password,
+        tls_context: tls_context
+      )
+    }
     after_initialize
   end
 
