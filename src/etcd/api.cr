@@ -27,41 +27,42 @@ class Etcd::Api
 
   def initialize(
     url : URI,
-    @api_version : String = DEFAULT_VERSION,
-    @secure = false,
-    @username : String? = nil,
-    @password : String? = nil,
-    @tls_context : HTTP::Client::TLSContext? = nil,
+    api_version : String? = nil,
+    secure = false,
+    username : String? = nil,
+    password : String? = nil,
+    tls_context : HTTP::Client::TLSContext? = nil,
   )
-    initialize([url], api_version, @secure, @username, @password, @tls_context)
+    initialize([url], api_version, secure, username, password, tls_context)
   end
 
   def initialize(
     @endpoints : Array(URI),
-    @api_version : String = DEFAULT_VERSION,
+    api_version : String? = nil,
     @secure = false,
     @username : String? = nil,
     @password : String? = nil,
     @tls_context : HTTP::Client::TLSContext? = nil,
   )
+    @api_version = api_version || DEFAULT_VERSION
     update_auth_token
   end
 
   def initialize(
     host : String = "localhost",
     port : Int32? = nil,
-    @api_version : String = DEFAULT_VERSION,
-    @secure = false,
-    @username : String? = nil,
-    @password : String? = nil,
-    @tls_context : HTTP::Client::TLSContext? = nil,
+    api_version : String? = nil,
+    secure = false,
+    username : String? = nil,
+    password : String? = nil,
+    tls_context : HTTP::Client::TLSContext? = nil,
   )
     url = URI.new(
       scheme: secure ? "https" : "http",
       host: host,
       port: port,
     )
-    initialize(url, api_version, @secure, @username, @password, @tls_context)
+    initialize(url, api_version, secure, username, password, tls_context)
   end
 
   # TODO: Add connection pooling.

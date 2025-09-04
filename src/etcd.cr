@@ -13,7 +13,7 @@ module Etcd
     client(
       host: ENV["ETCD_HOST"]? || "localhost",
       port: ENV["ETCD_PORT"]?.try(&.to_i) || 2379,
-      api_version: api_version,
+      api_version: api_version || ENV["ETCD_API_VERSION"]?,
       username: ENV["ETCD_USERNAME"]?,
       password: ENV["ETCD_PASSWORD"]?,
     )
